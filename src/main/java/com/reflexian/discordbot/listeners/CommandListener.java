@@ -1,7 +1,9 @@
 package com.reflexian.discordbot.listeners;
 
 import com.reflexian.discordbot.Main;
+import com.reflexian.discordbot.commands.fun.Say;
 import com.reflexian.discordbot.commands.moderation.Ban;
+import com.reflexian.discordbot.commands.moderation.Unban;
 import com.reflexian.discordbot.commands.utilities.Help;
 import com.reflexian.discordbot.commands.utilities.Info;
 import com.reflexian.discordbot.commands.utilities.Uptime;
@@ -18,9 +20,9 @@ public class CommandListener extends ListenerAdapter {
         if (event.getAuthor().isBot()) return;
         if (!event.getChannelType().isGuild()) return;
         String message = event.getMessage().getContentRaw();
-        if (message.startsWith("<@775250061504413727> ")||message.startsWith("<@!775250061504413727> ")) {
+        if (message.startsWith("<@775250061504413727> ")||message.startsWith("<@!775250061504413727> ")||message.startsWith("<@!784515176132378625> ")||message.startsWith("<@784515176132378625> ")) {
             event.getMessage().delete().queue();
-            message = message.replace("<@775250061504413727> ", "").replace("<@!775250061504413727> ", "");
+            message = message.replace("<@775250061504413727> ", "").replace("<@!775250061504413727> ", "").replace("<@!784515176132378625> ", "").replace("<@784515176132378625> ", "");
             String[] args = message.split("\\s+");
             Main.logger.info(event.getAuthor().getAsTag() + " -> " + message + " (" + event.getGuild().getName()+")");
             switch (args[0].toLowerCase()) {
@@ -34,6 +36,16 @@ public class CommandListener extends ListenerAdapter {
                     ban.execute(event);
                     ban=null;
                     break;
+                case "unban":
+                    Unban unban = new Unban(args, event.getMember(), event.getAuthor());
+                    unban.execute(event);
+                    unban=null;
+                    break;
+                case "say":
+                    Say say = new Say(args, event.getMember(), event.getAuthor());
+                    say.execute(event);
+                    say=null;
+                    break;
                 case "info":
                     Info info = new Info(args, event.getMember(), event.getAuthor());
                     info.execute(event);
@@ -46,7 +58,6 @@ public class CommandListener extends ListenerAdapter {
                     return;
                 default:
                     event.getChannel().sendMessage("I do not understand that command, " + event.getAuthor().getAsMention() + " \\:(").queue(message1 -> {
-                        message1.addReaction(":redCross:761713140957184000").queue();
                         message1.delete().queueAfter(10, TimeUnit.SECONDS);
                     });
                     break;
