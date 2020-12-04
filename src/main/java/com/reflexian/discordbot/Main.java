@@ -27,6 +27,9 @@ import java.util.Map;
 
 public class Main {
 
+    // TODO Change from true to false
+    public static boolean isDev = false;
+
     private static Long now = System.currentTimeMillis();
     private static JDA jda;
     private static Main plugin;
@@ -45,11 +48,13 @@ public class Main {
         new Main().mysqlSetup();
         AntiSwear.saveTheList();
 
-        //new WordList().saveList();
         lastRestart = new Date();
         now = System.currentTimeMillis();
 
-        JDABuilder jdaBuilder = JDABuilder.createDefault("Nzc1MjUwMDYxNTA0NDEzNzI3.X6jl4g.qluBVSJ6yEBusW5iFvrMOVVIY_Q");
+        JDABuilder jdaBuilder;
+        if (isDev) jdaBuilder = JDABuilder.createDefault("Nzg0NTE1MTc2MTMyMzc4NjI1.X8qasQ.Mk1eT9s-eeWEWjYt0D-gQ3wLZkU");
+        // DEV TOKEN ^^^ NORMAL TOKEN VVV
+        else jdaBuilder = JDABuilder.createDefault("Nzc1MjUwMDYxNTA0NDEzNzI3.X6jl4g.qluBVSJ6yEBusW5iFvrMOVVIY_Q");
         jdaBuilder.enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_VOICE_STATES).setMemberCachePolicy(MemberCachePolicy.ALL).setChunkingFilter(ChunkingFilter.ALL);
         try {
             jda = jdaBuilder.build();
@@ -63,6 +68,8 @@ public class Main {
         } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
         }
+
+        if (isDev) logger.warn("Starting up in Developer Mode.");
 
         PlayerCounter playerCounter = new PlayerCounter();
         (new Thread(playerCounter)).start();

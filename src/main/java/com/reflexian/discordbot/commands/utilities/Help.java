@@ -24,9 +24,9 @@ public class Help extends Command {
         help.setColor(new Color(67, 149, 19));
         help.setTitle("Help");
         if (event.getMember().hasPermission(Permission.BAN_MEMBERS)) {
-            help.setDescription("These are the commands available to you! (PREFIX IS @Infinity#9833)\n\nhelp - You are here\ninfo - Information about the bot\nuptime - Uptime information\nban - Ban a player");
+            help.setDescription("These are the commands available to you! (PREFIX IS @Infinity#9833)\n\n**Help** - You are here\n**Info** - Information about the bot\n**Uptime** - Uptime information\n**Say** - Make me say something (use \"***<number>**\" to delay auto delete)\n**Ban** - Ban a member\n**Unban** - Unban a member (ID only)");
         } else {
-            help.setDescription("These are the commands available to you! (PREFIX IS @Infinity#9833)\n\nhelp - You are here\ninfo - Information about the bot\nuptime - Uptime information");
+            help.setDescription("These are the commands available to you! (PREFIX IS @Infinity#9833)\n\n**Help** - You are here\n**Info** - Information about the bot\n**Uptime** - Uptime information\n**Say** - Make me say something (use \"***<number>**\" to delay auto delete)");
         }
         help.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
         event.getChannel().sendMessage(help.build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
