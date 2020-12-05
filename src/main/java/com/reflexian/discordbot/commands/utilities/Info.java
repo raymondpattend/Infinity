@@ -23,7 +23,7 @@ public class Info extends Command {
         EmbedBuilder info = new EmbedBuilder();
         info.setColor(new Color(48, 144, 123));
         info.setTitle("Info");
-        info.setDescription("This is the information about me!");
+        info.setDescription("This is the information about me! Learn more -> [Reflexian.com](https://www.reflexian.com/infinity)\nWant to help support Infinity? [Buy a sticker](https://www.reflexian.com/product/sticker/)!");
 
         int guilds = 0;
         int members = 0;
@@ -34,7 +34,7 @@ public class Info extends Command {
         }
 
         info.addField("Total Guilds:Members", guilds+"/75:"+members, false);
-        info.addField("My Creator", "Raymond (Rayrnond#0001:269262067503071232) originally created me for his discord server [Reflexian](https://discord.gg/WpCpRbC). I now stand proud helping people all over discord.", false);
+        info.addField("My Creator", "**Raymond (Rayrnond#0001:269262067503071232)**\nHello, my name is Raymond. I’m the CEO of Reflexian LLC and the Developer of Infinity. When developing Infinity, I thought about all the best parts of a Discord Bot; simple, fast, and the best possible experience for you. If one of those values were not in Infinity, this project wouldn’t have became public.\nFor support, please join our Discord -> [Reflexian](https://discord.gg/WpCpRbC).", false);
         info.setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
         event.getChannel().sendMessage(info.build()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
     }
