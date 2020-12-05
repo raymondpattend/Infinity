@@ -1,13 +1,12 @@
 package com.reflexian.discordbot.listeners;
 
 import com.reflexian.discordbot.Main;
+import com.reflexian.discordbot.commands.administration.GuildList;
+import com.reflexian.discordbot.commands.administration.Leave;
 import com.reflexian.discordbot.commands.fun.Say;
 import com.reflexian.discordbot.commands.moderation.Ban;
 import com.reflexian.discordbot.commands.moderation.Unban;
-import com.reflexian.discordbot.commands.utilities.Config;
-import com.reflexian.discordbot.commands.utilities.Help;
-import com.reflexian.discordbot.commands.utilities.Info;
-import com.reflexian.discordbot.commands.utilities.Uptime;
+import com.reflexian.discordbot.commands.utilities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -70,9 +69,34 @@ public class CommandListener extends ListenerAdapter {
                     help.execute(event);
                     help = null;
                     return;
+                case "guildlist":
+                    if (event.getAuthor().getIdLong() == 269262067503071232L) {
+                        GuildList guildList = new GuildList(args, event.getMember(), event.getAuthor());
+                        try {
+                            guildList.execute(event);
+                            guildList=null;
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                        }
+                        break;
+                    }
+                    break;
+                case "leave":
+                    if (event.getAuthor().getIdLong() == 269262067503071232L) {
+                        Leave leave = new Leave(args, event.getMember(), event.getAuthor());
+                        try {
+                            leave.execute(event);
+                            leave=null;
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                        }
+                        break;
+                    }
+                    break;
                 default:
                     event.getChannel().sendMessage("I do not understand that command, " + event.getAuthor().getAsMention() + " \\:(").queue(message1 -> {
                         message1.delete().queueAfter(10, TimeUnit.SECONDS);
+                    }, (failure) -> {
                     });
                     break;
             }

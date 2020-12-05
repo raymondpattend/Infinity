@@ -14,7 +14,6 @@ public class MySQL {
 
         for (Guild guild : Main.getJda().getGuilds()) {
             long guildid = guild.getIdLong();
-            Main.logger.info("Updating " + guild.getName() + " " + guild.getIdLong());
             statement.executeUpdate("INSERT IGNORE INTO `guild_data` SET `guild_id` = '" + guildid +  "';");
         }
 

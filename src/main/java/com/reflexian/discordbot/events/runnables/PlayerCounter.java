@@ -1,8 +1,11 @@
 package com.reflexian.discordbot.events.runnables;
 
 import com.reflexian.discordbot.Main;
+import com.reflexian.discordbot.mysql.MySQL;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+
+import java.sql.SQLException;
 
 public class PlayerCounter implements Runnable {
 
@@ -37,6 +40,11 @@ public class PlayerCounter implements Runnable {
             } else if (num==2) {
                 Main.getJda().getPresence().setActivity(Activity.playing("on reflexian.com"));
                 num=0;
+                try {
+                    new MySQL().registerTables();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
             }
 
             try {
