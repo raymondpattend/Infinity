@@ -5,6 +5,8 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
+
 public abstract class Command {
 
     private final User user;
@@ -23,7 +25,7 @@ public abstract class Command {
         this.isCancelled = false;
     }
 
-    public abstract void execute(MessageReceivedEvent event);
+    public abstract void execute(MessageReceivedEvent event) throws SQLException;
     public abstract void cancel();
 
     public User getUser() {

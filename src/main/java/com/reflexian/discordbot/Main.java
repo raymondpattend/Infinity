@@ -2,8 +2,10 @@ package com.reflexian.discordbot;
 
 import com.reflexian.discordbot.chat.AntiSwear;
 import com.reflexian.discordbot.events.guildevents.GuildJoinCaptcha;
+import com.reflexian.discordbot.events.guildevents.GuildJoinEvent;
 import com.reflexian.discordbot.events.runnables.PlayerCounter;
 import com.reflexian.discordbot.listeners.CommandListener;
+import com.reflexian.discordbot.mysql.MySQL;
 import com.reflexian.discordbot.utilities.DiscordUser;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -28,9 +30,8 @@ import java.util.Map;
 public class Main {
 
     // TODO Change from true to false
-    public static boolean isDev = false;
+    public static boolean isDev = true;
 
-    private static Long now = System.currentTimeMillis();
     private static JDA jda;
     private static Main plugin;
     public static Date lastRestart;
@@ -42,14 +43,13 @@ public class Main {
     public String host, database, username, password, table;
     public int port;
 
-    public static void main(String[] args) throws IOException, URISyntaxException {
+    public static void main(String[] args) throws IOException, URISyntaxException, SQLException {
 
 
         new Main().mysqlSetup();
         AntiSwear.saveTheList();
 
         lastRestart = new Date();
-        now = System.currentTimeMillis();
 
         JDABuilder jdaBuilder;
         if (isDev) jdaBuilder = JDABuilder.createDefault("Nzg0NTE1MTc2MTMyMzc4NjI1.X8qasQ.Mk1eT9s-eeWEWjYt0D-gQ3wLZkU");
@@ -62,6 +62,7 @@ public class Main {
             jda.addEventListener(new CommandListener());
             jda.addEventListener(new AntiSwear("antisw"));
             jda.addEventListener(new GuildJoinCaptcha());
+            jda.addEventListener(new GuildJoinEvent());
 
 
             jda.awaitReady();
@@ -71,6 +72,7 @@ public class Main {
 
         if (isDev) logger.warn("Starting up in Developer Mode.");
 
+        new MySQL().registerTables();
         PlayerCounter playerCounter = new PlayerCounter();
         (new Thread(playerCounter)).start();
 
@@ -78,11 +80,11 @@ public class Main {
 
     public void mysqlSetup(){
         this.plugin = this;
-        host = "181.215.242.76";
-        port = 15232;
-        database = "Prison";
-        username = "Raymond";
-        password = "Midland12";
+        host = "na01-sql.pebblehost.com";
+        port = 3306;
+        database = "customer_145723_infinity";
+        username = "customer_145723_infinity";
+        password = "Magicfly1234$";
         table = "null";
 
         try{
@@ -93,8 +95,8 @@ public class Main {
                 }
 
                 Class.forName("com.mysql.cj.jdbc.Driver");
-                setConnection( DriverManager.getConnection("jdbc:mysql://" + this.host + ":"
-                        + this.port + "/" + this.database, this.username, this.password+""));
+                //setConnection( DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database, this.username, this.password+"&serverTimezone=UTC"));
+                setConnection(DriverManager.getConnection("jdbc:mysql://customer_145723_infinity:Magicfly1234$@na01-sql.pebblehost.com/customer_145723_infinity?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"));
                 Main.logger.info("Attempting MySQL Login...");
             }
             Main.logger.info("MySQL Login Successful!");
@@ -110,6 +112,7 @@ public class Main {
     public void setConnection(Connection connection) {
         this.connection = connection;
     }
+
 
     public static JDA getJda() {
         return jda;
