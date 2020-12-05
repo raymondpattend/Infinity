@@ -30,7 +30,7 @@ import java.util.Map;
 public class Main {
 
     // TODO Change from true to false
-    public static boolean isDev = true;
+    public static boolean isDev = false;
 
     private static JDA jda;
     private static Main plugin;
