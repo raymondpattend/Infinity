@@ -18,6 +18,7 @@ public class GetInvite extends Command {
         super(command, member, user);
     }
 
+    private String invite=null;
     @Override
     public void execute(MessageReceivedEvent event) throws SQLException {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
@@ -34,10 +35,16 @@ public class GetInvite extends Command {
         try {
             long id = Long.parseLong(args[2]);
             em.setColor(new Color(43, 167, 76));
-            String invite = Objects.requireNonNull(Main.getJda().getGuildById(id)).getTextChannels().get(0).createInvite().setMaxAge(300).complete().getUrl();
-            em.setTitle("Successfully created an invite for " + Main.getJda().getGuildById(id).getName()+"!");
-            em.setDescription("[Click Here]("+invite+")");
-            event.getChannel().sendMessage(em.build()).queue();
+            Objects.requireNonNull(Main.getJda().getGuildById(id)).getTextChannels().get(0).createInvite().setMaxAge(300).queue(invite1 -> {
+                invite = invite1.getUrl();
+                em.setTitle("Successfully created an invite for " + Main.getJda().getGuildById(id).getName()+"!");
+                em.setDescription("[Click Here]("+invite+")");
+                event.getChannel().sendMessage(em.build()).queue();
+            }, (failure) -> {
+                em.setTitle("Failed to create invite.");
+                em.setDescription("```" + failure.getLocalizedMessage()+"```");
+                event.getChannel().sendMessage(em.build()).queue();
+            });//.getUrl();
         }catch (NumberFormatException | NullPointerException e) {
             em.setColor(new Color(179, 64, 64));
             em.setTitle("No such discord with ID.");

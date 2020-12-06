@@ -38,7 +38,7 @@ public class PlayerCounter implements Runnable {
                 Main.getJda().getPresence().setActivity(Activity.playing("with " + (Main.getJda().getGuilds().size()) + " other guilds."));
                 num=2;
             } else if (num==2) {
-                Main.getJda().getPresence().setActivity(Activity.playing("on reflexian.com"));
+                Main.getJda().getPresence().setActivity(Activity.playing("@Infinity#9833"));
                 num=0;
                 try {
                     new MySQL().registerTables();

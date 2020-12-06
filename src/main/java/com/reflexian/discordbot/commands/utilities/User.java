@@ -47,57 +47,19 @@ public class User extends Command {
 
             net.dv8tion.jda.api.entities.User user = member.getUser();
 
-            String name, id, dis, nickname, icon, status, statusEmoji = null, game, join, register;
-
-
-
-
-            icon = user.getEffectiveAvatarUrl();
-
-            /* Identity */
-            name = user.getName();
-            id = user.getId();
-            dis = user.getDiscriminator();
-            nickname = member.getNickname() == null ? "N/A" : member.getEffectiveName();
-
-            /* Status */
-            OnlineStatus stat = member == null ? null : member.getOnlineStatus();
-            status = stat == null ? "N?A" : stat.getKey();
-            try {
-                game = stat == null ? "N/A" : member.getActivities().get(0) == null ? "N/A" : member.getActivities().get(0).getName();
-            }catch (IndexOutOfBoundsException e) {
-                game = "N/A";
-            }
-
-            /* Time */
-            join = member == null ? "N?A" : UtilStrings.formatOffsetDateTime(member.getTimeJoined());
-            register = UtilStrings.formatOffsetDateTime(user.getTimeCreated());
-
-            EmbedBuilder embed = new EmbedBuilder()
-                    .setAuthor(name, null, icon)
-                    .setColor(UtilStrings.randomColor()).setThumbnail(icon).setTimestamp(Instant.now())
-                    .setFooter("User Info", null);
-
-            embed.addField("Identity", "ID `"+id+"`\n"+
-                    "Nickname `"+nickname+"` | Discrim `"+dis+"`", true);
-
-            embed.addField("Status", " `"+game+"`\n"
-                    +statusEmoji+" `"+status+"`\n", true);
-
-            embed.addField( "Time", "Join `"+join+"`\n"+
-                    "Register `"+register+"`\n", true);
-
-
-
-            /*EmbedBuilder player = new EmbedBuilder();
+            EmbedBuilder player = new EmbedBuilder();
             player.setColor(new Color(60, 134, 191));
-            player.setThumbnail(member.getUser().getAvatarUrl());
-            player.setTitle("" + member.getUser().getAsTag() + " Information");
-            player.setDescription(member.get)
-            player.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());*/
-
-            event.getChannel().sendMessage(embed.build()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
-
+            player.setThumbnail(user.getAvatarUrl());
+            player.setTitle("User Information: " + member.getUser().getAsTag());
+            player.setDescription("Joined this guild on ``" + UtilStrings.formatOffsetDateTime(member.getTimeJoined()) + "``\nJoin Discord on ``" + UtilStrings.formatOffsetDateTime(user.getTimeCreated()) + "``");
+            player.addField("Identity", "**Username** - " + user.getAsTag()+"\n**ID** - " + user.getId()+"\n**Nickname** - " + (member.getNickname() == null ? "N/A" : member.getEffectiveName()), false);
+            try {
+                player.addField("Status", member.getActivities().get(0) == null ? "N/A" : member.getActivities().get(0).getName(), false);
+            }catch (IndexOutOfBoundsException e) {
+                player.addField("Status", "N/A", false);
+            }
+            player.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+            event.getChannel().sendMessage(player.build()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
         }catch (NullPointerException | NumberFormatException e) {
             event.getChannel().sendMessage(new EmbedBuilder().setTitle("Not a valid user.").setDescription("You must include a valid id or mention.").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
             return;

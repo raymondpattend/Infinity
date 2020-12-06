@@ -1,8 +1,5 @@
 package com.reflexian.discordbot.utilities;
 
-import com.reflexian.discordbot.Main;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
 public class DiscordUser {

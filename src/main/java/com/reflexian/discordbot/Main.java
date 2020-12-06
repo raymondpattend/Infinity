@@ -2,6 +2,7 @@ package com.reflexian.discordbot;
 
 import com.reflexian.discordbot.chat.AntiSwear;
 import com.reflexian.discordbot.events.guildevents.BotAdded;
+import com.reflexian.discordbot.events.guildevents.BotRemoved;
 import com.reflexian.discordbot.events.guildevents.GuildJoinCaptcha;
 import com.reflexian.discordbot.events.guildevents.GuildJoinEvent;
 import com.reflexian.discordbot.events.runnables.PlayerCounter;
@@ -65,6 +66,7 @@ public class Main {
             jda.addEventListener(new GuildJoinCaptcha());
             jda.addEventListener(new GuildJoinEvent());
             jda.addEventListener(new BotAdded());
+            jda.addEventListener(new BotRemoved());
 
 
             jda.awaitReady();
