@@ -1,18 +1,15 @@
 package com.reflexian.discordbot;
 
 import com.reflexian.discordbot.chat.AntiSwear;
-import com.reflexian.discordbot.events.guildevents.BotAdded;
-import com.reflexian.discordbot.events.guildevents.BotRemoved;
-import com.reflexian.discordbot.events.guildevents.GuildJoinCaptcha;
-import com.reflexian.discordbot.events.guildevents.GuildJoinEvent;
+import com.reflexian.discordbot.events.guildevents.*;
+import com.reflexian.discordbot.events.leveling.GuildMessage;
+import com.reflexian.discordbot.events.log.MessageLoader;
 import com.reflexian.discordbot.events.runnables.PlayerCounter;
 import com.reflexian.discordbot.listeners.CommandListener;
 import com.reflexian.discordbot.mysql.MySQL;
 import com.reflexian.discordbot.utilities.DiscordUser;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -32,7 +29,8 @@ import java.util.Map;
 public class Main {
 
     // TODO Change from true to false
-    public static boolean isDev = false;
+    public double version = 0.0127;
+    public static boolean isDev = true;
 
     private static JDA jda;
     private static Main plugin;
@@ -56,7 +54,7 @@ public class Main {
         JDABuilder jdaBuilder;
         if (isDev) jdaBuilder = JDABuilder.createDefault("Nzg0NTE1MTc2MTMyMzc4NjI1.X8qasQ.Mk1eT9s-eeWEWjYt0D-gQ3wLZkU");
         // DEV TOKEN ^^^ NORMAL TOKEN VVV
-        else jdaBuilder = JDABuilder.createDefault("Nzc1MjUwMDYxNTA0NDEzNzI3.X6jl4g.qluBVSJ6yEBusW5iFvrMOVVIY_Q");
+        else jdaBuilder = JDABuilder.createDefault("Nzc1MjUwMDYxNTA0NDEzNzI3.X6jl4g.YM41k89HRThaAckRDx4XD5DM-MU");
         jdaBuilder.enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_VOICE_STATES).setMemberCachePolicy(MemberCachePolicy.ALL).setChunkingFilter(ChunkingFilter.ALL);
         try {
             jda = jdaBuilder.build();
@@ -65,9 +63,11 @@ public class Main {
             jda.addEventListener(new AntiSwear("antisw"));
             jda.addEventListener(new GuildJoinCaptcha());
             jda.addEventListener(new GuildJoinEvent());
+            jda.addEventListener(new GuildLeaveEvent());
             jda.addEventListener(new BotAdded());
+            jda.addEventListener(new MessageLoader());
             jda.addEventListener(new BotRemoved());
-
+            jda.addEventListener(new GuildMessage());
 
             jda.awaitReady();
         } catch (LoginException | InterruptedException e) {

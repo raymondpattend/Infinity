@@ -1,8 +1,10 @@
-package com.reflexian.discordbot.commands.administration;
+package com.reflexian.discordbot.commands.botadministrative;
 
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
+import com.reflexian.discordbot.mysql.MySQL;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -13,12 +15,11 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class GetInvite extends Command {
-    public GetInvite(String[] command, @Nullable Member member, @Nullable User user) {
+public class AddMembership extends Command {
+    public AddMembership(String[] command, @Nullable Member member, @Nullable User user) {
         super(command, member, user);
     }
 
-    private String invite=null;
     @Override
     public void execute(MessageReceivedEvent event) throws SQLException {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
@@ -35,16 +36,11 @@ public class GetInvite extends Command {
         try {
             long id = Long.parseLong(args[2]);
             em.setColor(new Color(43, 167, 76));
-            Objects.requireNonNull(Main.getJda().getGuildById(id)).getTextChannels().get(0).createInvite().setMaxAge(300).queue(invite1 -> {
-                invite = invite1.getUrl();
-                em.setTitle("Successfully created an invite for " + Main.getJda().getGuildById(id).getName()+"!");
-                em.setDescription("[Click Here]("+invite+")");
-                event.getChannel().sendMessage(em.build()).queue();
-            }, (failure) -> {
-                em.setTitle("Failed to create invite.");
-                em.setDescription("```" + failure.getLocalizedMessage()+"```");
-                event.getChannel().sendMessage(em.build()).queue();
-            });//.getUrl();
+            Guild guild = Main.getJda().getGuildById(id);
+            em.setTitle("<:verified2:785197016522555394> "+guild.getName()+" now has a Membership!");
+            em.setDescription("Congratulations, and thank you for your support.");
+            MySQL.registerMembership(guild, Objects.requireNonNull(event.getMember()), "Manually added through Administration Commands.");
+            event.getChannel().sendMessage(em.build()).queue();
         }catch (NumberFormatException | NullPointerException e) {
             em.setColor(new Color(179, 64, 64));
             em.setTitle("No such discord with ID.");

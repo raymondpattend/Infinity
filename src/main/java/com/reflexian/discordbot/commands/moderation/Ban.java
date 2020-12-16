@@ -2,6 +2,7 @@ package com.reflexian.discordbot.commands.moderation;
 
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
+import com.reflexian.discordbot.mysql.MySQL;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -27,9 +28,19 @@ public class Ban extends Command {
         Member member=null;
 
         if (args.length < 3) {
-            event.getChannel().sendMessage(new EmbedBuilder().setTitle("Not enough arguments.").setDescription("Correct usage:\n``@Infinity#9833 ban <mention / id> <reason>``").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+
+            EmbedBuilder help = new EmbedBuilder();
+            help.setColor(new Color(189,55,55));
+            help.setTitle("Help - Ban");
+            help.setDescription("Sub Commands start with <@775250061504413727>");
+            help.addField("Commands", "Ban **-** Permanently ban a member", false);
+            help.addField("Description", "This command allows you to permanently ban a user, for any reason.", false);
+            help.addField("Permission", "Requires ``BAN_MEMBERS`` to execute subcommands.", false);
+            help.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+            sendMessage(event.getTextChannel(), help.build(), 40);
             return;
         }
+
 
         try {
             if (event.getMessage().getMentionedUsers().size() == 2) {
@@ -42,11 +53,11 @@ public class Ban extends Command {
 
 
             if (member.hasPermission(Permission.BAN_MEMBERS)) {
-                event.getChannel().sendMessage(new EmbedBuilder().setTitle("Member with higher permissions.").setDescription("The user you want to punish has administrator permissions.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Member with higher permissions.").setDescription("The user you want to punish has administrator permissions.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
                 return;
             }
             if (!event.getMember().hasPermission(Permission.BAN_MEMBERS)) {
-                event.getChannel().sendMessage(new EmbedBuilder().setTitle("No permission.").setDescription("You need ``BAN_MEMBERS`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No permission.").setDescription("You need ``BAN_MEMBERS`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
                 return;
             }
 
@@ -62,7 +73,7 @@ public class Ban extends Command {
                     }
                 }
             } catch (IndexOutOfBoundsException e) {
-                event.getChannel().sendMessage(new EmbedBuilder().setTitle("No reason specified.").setDescription("You must include a reason to punish.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No reason specified.").setDescription("You must include a reason to punish.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
                 return;
             }
 
@@ -80,23 +91,15 @@ public class Ban extends Command {
 
             event.getGuild().ban(member, 0).queue();
 
-            event.getChannel().sendMessage(banned.build()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
+            sendMessage(event.getTextChannel(), banned.build(), 30);
 
             member.getUser().openPrivateChannel().queue((channel2) -> {
                 channel2.sendMessage(banned.setTitle("You were banned from " + event.getGuild().getName() + "!").setDescription("You are banned permanently. This action is non reversible!").build()).queue();
             });
 
         }catch (NullPointerException | NumberFormatException e) {
-            event.getChannel().sendMessage(new EmbedBuilder().setTitle("Not a valid member.").setDescription("You must include a valid member or mention.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
-            return;
+            sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Not a valid member.").setDescription("You must include a valid member or mention.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
         }
-
-
-
-
-
-// EmbedBuilder em = new EmbedBuilder().setTitle("Member with higher permissions.").setDescription("The user you want to punish has administrator permissions.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
-//EmbedBuilder em = new EmbedBuilder().setTitle("Not a valid member.").setDescription("You must include a valid member or mention.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
     }
 
     @Override

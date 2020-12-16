@@ -1,11 +1,17 @@
 package com.reflexian.discordbot.chat;
 
 import com.reflexian.discordbot.Main;
+import com.reflexian.discordbot.events.log.MessageLoader;
+import com.reflexian.discordbot.mysql.MySQL;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.IOException;
@@ -13,6 +19,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 
@@ -22,6 +29,8 @@ public class AntiSwear extends ListenerAdapter {
     private final String identifier;
     private final Map<CheckType, List<Object>> checkMap = new HashMap<>();
 
+    MessageLoader messageLoader = new MessageLoader();
+
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getGuild().getId().equals("770142850633433094")) return;
@@ -30,7 +39,7 @@ public class AntiSwear extends ListenerAdapter {
         antiSwear.addCheck(words, CheckType.EXACT);
         antiSwear.addCheck(words, CheckType.REGEX);
         if (antiSwear.checkAll(event.getMessage().getContentRaw()) >= 50) {
-            event.getMessage().delete().queue();
+            //EmbedBuilder blacklistedWord = new EmbedBuilder().setTitle("\ud83d\udcdc Deleted Blacklisted Message").setColor(new Color(76, 119, 167)).setDescription("Message sent by " + event.getAuthor().getAsMention() + " was deleted in " +event.getMessage().getTextChannel().getAsMention()+".").addField("Message", "```"+event.getMessage().getContentRaw()+"```", false).setTimestamp(new Date().toInstant()).setFooter("Message ID (" + event.getMessage().getId()+")");
 
             EmbedBuilder mess = new EmbedBuilder();
             mess.setColor(new Color(198, 76, 76));
@@ -39,11 +48,16 @@ public class AntiSwear extends ListenerAdapter {
             mess.addField("Your message", event.getMessage().getContentRaw(), false);
             mess.addField("Violation Count", antiSwear.checkAll(event.getMessage().getContentRaw()) + "", false);
             mess.setFooter("Sent to " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
-
+            event.getMessage().delete().queueAfter(10, TimeUnit.MILLISECONDS);
             event.getAuthor().openPrivateChannel().queue((channel2) -> {
                 channel2.sendMessage(mess.build()).queue();
             });
-            Main.logger.warn(event.getAuthor().getAsTag() + " failed to send a blacklisted word (" + antiSwear.checkAll(event.getMessage().getContentRaw()) + ")!\n"+event.getMessage().getContentRaw());
+            /*if (isEnabled(event.getGuild().getIdLong())) {
+                TextChannel textChannel = getChannel(event.getGuild());
+                if (textChannel==null) return;
+                sendMessage(textChannel, blacklistedWord.build(), null);
+            }*/
+
         }
     }
 
@@ -125,6 +139,26 @@ public class AntiSwear extends ListenerAdapter {
                 scanner.close();
                 return;
             }
+        }
+    }
+
+    private boolean isEnabled(long id) {
+        return MySQL.getBool("guild_data", "logging_enabled", "guild_id", id + "");
+    }
+
+    private TextChannel getChannel(Guild guild) {
+        long id = Long.parseLong(MySQL.getString("guild_data", "logging_channel", "guild_id", guild.getId()));
+        if (id==0) return null;
+        return guild.getTextChannelById(id);
+    }
+
+    public void sendMessage(TextChannel textChannel, MessageEmbed embed, @Nullable Integer secondDelete) {
+        if (textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_WRITE)&&textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.VIEW_CHANNEL)) {
+            textChannel.sendMessage(embed).queue(message -> {
+                if (secondDelete==null) return;
+                if (message == null) return;
+                message.delete().queueAfter(secondDelete, TimeUnit.SECONDS);
+            });
         }
     }
 

@@ -2,6 +2,7 @@ package com.reflexian.discordbot.utilities;
 
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.User;
 
 import java.awt.*;
 import java.time.OffsetDateTime;
@@ -33,6 +34,28 @@ public class UtilStrings {
         int green = colorpicker.nextInt(255) + 1;
         int blue = colorpicker.nextInt(255) + 1;
         return new Color(red, green, blue);
+    }
+
+    public static String generateRandomChars(String candidateChars, int length) {
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(candidateChars.charAt(random.nextInt(candidateChars
+                    .length())));
+        }
+        return sb.toString();
+    }
+
+    public static String userDiscrimSet(User u) {
+        return stripFormatting(u.getName()) + "#" + u.getDiscriminator();
+    }
+
+    public static String stripFormatting(String s) {
+        return s.replace("*", "\\*")
+                .replace("`", "\\`")
+                .replace("_", "\\_")
+                .replace("~~", "\\~\\~")
+                .replace(">", "\u180E>");
     }
 
 }

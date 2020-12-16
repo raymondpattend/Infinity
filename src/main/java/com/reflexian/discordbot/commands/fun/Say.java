@@ -1,11 +1,17 @@
 package com.reflexian.discordbot.commands.fun;
 
 import com.reflexian.discordbot.listeners.Command;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class Say extends Command {
@@ -13,6 +19,8 @@ public class Say extends Command {
     public Say(String[] command, @Nullable Member member, @Nullable User user) {
         super(command, member, user);
     }
+
+    private Map<Member, Long> memberMap = new HashMap<>();
 
     @Override
     public void execute(MessageReceivedEvent event) {
@@ -26,6 +34,16 @@ public class Say extends Command {
                 str.append(string).append(" ");
             }
 
+            if (str.length() >250) {
+                sendMessage(event.getTextChannel(), "You cannot send messages longer than 250, " + event.getAuthor().getAsMention()+".", 15);
+                return;
+            }
+
+            if (str.toString().contains("@everyone")||str.toString().contains("@here")) {
+                sendMessage(event.getTextChannel(), "You cannot mention ``@everyone`` or ``@here``!", 15);
+                return;
+            }
+
             if (str.toString().contains("*")) {
                 int startIndex = str.indexOf("*");
                 int endIndex = str.indexOf(" ", startIndex);
@@ -34,24 +52,21 @@ public class Say extends Command {
                 }
                 String timer = str.substring(startIndex+1, endIndex);
                 str = str.delete(startIndex, endIndex);
-                long lon;
+                int lon;
                 try {
-                    lon = Long.parseLong(timer);
+                    lon = Integer.parseInt(timer);
                 }catch (NumberFormatException e) {
-                    event.getChannel().sendMessage(str.replace(startIndex, endIndex, "")).queue();
+                    sendMessage(event.getTextChannel(), event.getAuthor().getAsTag() + "**:** " + str.replace(startIndex, endIndex, "").toString(), null);
                     return;
                 }
 
-                event.getChannel().sendMessage(str).queue(message -> {
-                    message.delete().queueAfter(lon, TimeUnit.SECONDS);
-                });
+                sendMessage(event.getTextChannel(),event.getAuthor().getAsTag() + "**:** " +  str.toString(), lon);
                 return;
 
             }
-            event.getChannel().sendMessage(str).queue();
+            sendMessage(event.getTextChannel(), event.getAuthor().getAsTag() + "**:** " +  str.toString(), null);
         } catch (IllegalStateException | IllegalArgumentException e) {
-            event.getChannel().sendMessage("Must include text, " + event.getAuthor().getAsMention() + " :P").queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
-
+            sendMessage(event.getTextChannel(), "Command must include text!\n**Example**: ``@Infinity#9388 say hello *30``", 20);
         }
 
 

@@ -1,13 +1,15 @@
 package com.reflexian.discordbot.listeners;
 
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 
-public abstract class Command {
+public abstract class Command extends ListenerAdapter {
 
     private final User user;
     private final Member member;
@@ -48,6 +50,26 @@ public abstract class Command {
     }
     public void setPermissionID(int permissionID) {
         this.permissionID = permissionID;
+    }
+
+    public void sendMessage(TextChannel textChannel, MessageEmbed embed, @Nullable Integer secondDelete) {
+        if (textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_WRITE)&&textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.VIEW_CHANNEL)) {
+            textChannel.sendMessage(embed).queue(message -> {
+                if (secondDelete==null) return;
+                if (message == null) return;
+                message.delete().queueAfter(secondDelete, TimeUnit.SECONDS);
+            });
+        }
+    }
+
+    public void sendMessage(TextChannel textChannel, String text, @Nullable Integer secondDelete) {
+        if (textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_WRITE)&&textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.VIEW_CHANNEL)) {
+            textChannel.sendMessage(text).queue(message -> {
+                if (secondDelete==null) return;
+                if (message==null) return;
+                message.delete().queueAfter(secondDelete, TimeUnit.SECONDS);
+            });
+        }
     }
 
     public boolean isCancelled() {
