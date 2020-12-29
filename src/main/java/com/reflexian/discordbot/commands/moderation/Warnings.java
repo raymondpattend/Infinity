@@ -16,8 +16,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 
-public class Unwarn extends Command {
-    public Unwarn(String[] command, @Nullable Member member, @Nullable User user) {
+public class Warnings extends Command {
+
+    public Warnings(String[] command, @Nullable Member member, @Nullable User user) {
         super(command, member, user);
     }
 
@@ -30,11 +31,11 @@ public class Unwarn extends Command {
         if (args.length < 3) {
             EmbedBuilder help = new EmbedBuilder();
             help.setColor(new Color(189,55,55));
-            help.setTitle("Help - Unwarn");
+            help.setTitle("Help - Warnings");
             help.setDescription("Sub Commands start with <@775250061504413727>");
-            help.addField("Commands", "Unwarn **-** Remove ``ALL`` warnings from a member", false);
-            help.addField("Description", "This feature allows you to remove every warning a member has.", false);
-            help.addField("Permission", "Requires ``BAN_MEMBERS`` to execute subcommands.", false);
+            help.addField("Commands", "Warnings **-** List the warnings of a member", false);
+            help.addField("Description", "This feature allows you to list the warnings a member has.", false);
+            help.addField("Permission", "Requires ``KICK_MEMBERS`` to execute subcommands.", false);
             help.addField("Example", "```@Infinity#9833 warnings @Raymond#0001```", false);
             help.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
             sendMessage(event.getTextChannel(), help.build(), 40);
@@ -50,8 +51,8 @@ public class Unwarn extends Command {
                 member = event.getGuild().getMemberById(args[2]);
             }
 
-            if (!event.getMember().hasPermission(Permission.BAN_MEMBERS)) {
-                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No permission.").setDescription("You need ``BAN_MEMBERS`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
+            if (!event.getMember().hasPermission(Permission.KICK_MEMBERS)) {
+                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No permission.").setDescription("You need ``KICK_MEMBERS`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
                 return;
             }
 
@@ -66,14 +67,21 @@ public class Unwarn extends Command {
                 sendMessage(event.getTextChannel(), none.build(), 60);
                 return;
             }
+            String[] ar = rs.getString("warnings_reasons").split("/");
             EmbedBuilder warnings=new EmbedBuilder();
-
-            Main.getPlugin().executeQuery("UPDATE user_data SET warnings = " +0+" and warnings_reasons = 'none/none/none' WHERE user_key = '" + event.getAuthor().getId() + "\\#" + event.getGuild().getId() + "';", true);
-
-            warnings.setTitle("Removed all warnings for " + member.getUser().getAsTag());
-            warnings.setThumbnail(member.getUser().getAvatarUrl()).setDescription(member.getUser().getAsTag() + " now has no warnings!");
+            warnings.setTitle("Warnings for " + member.getUser().getAsTag());
+            warnings.setThumbnail(member.getUser().getAvatarUrl()).setDescription("These are the warnings for " + member.getUser().getAsTag()+".");
+            warnings.addField("Total Warnings " + rs.getLong("warnings")+"/3", member.getUser().getAsTag() + " will be banned when they reach 3 warnings.", false);
+            if (!ar[0].equalsIgnoreCase("none")) {
+                warnings.addField("Warning #1", ar[0], false);
+            }
+            if (!ar[1].equalsIgnoreCase("none")) {
+                warnings.addField("Warning #2", ar[1], false);
+            }
+            if (!ar[2].equalsIgnoreCase("none")) {
+                warnings.addField("Warning #3", ar[2], false);
+            }
             warnings.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setTimestamp(new Date().toInstant()).setColor(new Color(45, 130, 77));
-            warnings.setTimestamp(new Date().toInstant());
             sendMessage(event.getTextChannel(), warnings.build(), 60);
         }catch (NullPointerException | NumberFormatException e) {
             sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Not a valid member.").setDescription("You must include a valid member or mention.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);

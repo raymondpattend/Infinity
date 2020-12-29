@@ -2,12 +2,13 @@ package com.reflexian.discordbot;
 
 import com.reflexian.discordbot.chat.AntiSwear;
 import com.reflexian.discordbot.events.guildevents.*;
-import com.reflexian.discordbot.events.leveling.GuildMessage;
+import com.reflexian.discordbot.events.messages.GuildMessage;
 import com.reflexian.discordbot.events.log.MessageLoader;
+import com.reflexian.discordbot.events.runnables.Data;
 import com.reflexian.discordbot.events.runnables.PlayerCounter;
 import com.reflexian.discordbot.listeners.CommandListener;
 import com.reflexian.discordbot.mysql.MySQL;
-import com.reflexian.discordbot.utilities.DiscordUser;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -16,26 +17,26 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.naming.CommunicationException;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Main {
 
     // TODO Change from true to false
-    public double version = 0.0127;
-    public static boolean isDev = true;
+    public double version = 0.0204;
+    public static boolean isDev = false;
 
     private static JDA jda;
     private static Main plugin;
+    public static boolean fullyEnabled;
     public static Date lastRestart;
-    public static Map<Long, DiscordUser> discordUserMap = new HashMap<>();
     public static final Logger logger = LoggerFactory.getLogger(Main.class);
 
 
@@ -45,9 +46,20 @@ public class Main {
 
     public static void main(String[] args) throws IOException, URISyntaxException, SQLException {
 
+        fullyEnabled=false;
+
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                System.out.println("Shutting down...");
+                for (Server server : Server.SERVER_MAP.values()) {
+                    if (!server.isUpdateToDatabase()) continue;
+                    server.getSettings().setMySQLValues();
+                }
+            }
+        }, "Shutdown-thread"));
 
         new Main().mysqlSetup();
-        AntiSwear.saveTheList();
+        //AntiSwear.saveTheList();
 
         lastRestart = new Date();
 
@@ -78,7 +90,9 @@ public class Main {
 
         new MySQL().registerTables();
         PlayerCounter playerCounter = new PlayerCounter();
+        Data data = new Data();
         (new Thread(playerCounter)).start();
+        (new Thread(data)).start();
 
     }
 
@@ -117,6 +131,25 @@ public class Main {
         this.connection = connection;
     }
 
+    private int i = 0;
+    public ResultSet executeQuery(String sql, boolean retry) throws SQLException {
+        ResultSet resultSet = null;
+        i++;
+        try {
+            resultSet = getConnection().createStatement().executeQuery(sql);
+        } catch (Exception e) {
+            // disconnection or timeout error
+            if (retry && e instanceof CommunicationException || (e instanceof SQLException && e.toString().contains("Could not retrieve transation read-only status server"))) {
+                // connect again
+                mysqlSetup();
+                // recursive, retry=false to avoid infinite loop
+                return executeQuery(sql,false);
+            }else{
+                throw e;
+            }
+        }
+        return resultSet;
+    }
 
     public static JDA getJda() {
         return jda;

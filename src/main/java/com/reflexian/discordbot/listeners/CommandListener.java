@@ -4,14 +4,13 @@ import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.commands.administrative.Config;
 import com.reflexian.discordbot.commands.administrative.Log;
 import com.reflexian.discordbot.commands.botadministrative.*;
+import com.reflexian.discordbot.commands.fun.Joke;
 import com.reflexian.discordbot.commands.fun.Say;
 import com.reflexian.discordbot.commands.leveling.Leaderboard;
 import com.reflexian.discordbot.commands.administrative.Leveling;
 import com.reflexian.discordbot.commands.leveling.Rank;
 import com.reflexian.discordbot.commands.membership.Membership;
-import com.reflexian.discordbot.commands.moderation.Ban;
-import com.reflexian.discordbot.commands.moderation.BanList;
-import com.reflexian.discordbot.commands.moderation.Unban;
+import com.reflexian.discordbot.commands.moderation.*;
 import com.reflexian.discordbot.commands.music.Music;
 import com.reflexian.discordbot.commands.utilities.*;
 import net.dv8tion.jda.api.Permission;
@@ -30,7 +29,6 @@ public class CommandListener extends ListenerAdapter {
         if (event.getAuthor().isBot()) return;
         if (!event.getChannelType().isGuild()) return;
         String message = event.getMessage().getContentRaw();
-        String[] args = message.split("\\s+");
         if (message.startsWith("<@775250061504413727> ") || message.startsWith("<@!775250061504413727> ") || message.startsWith("<@!784515176132378625> ") || message.startsWith("<@784515176132378625> ")) {
             if (message.startsWith("<@!784515176132378625> ") || message.startsWith("<@784515176132378625> ")) {
                 if (!Main.isDev) return;
@@ -54,6 +52,7 @@ public class CommandListener extends ListenerAdapter {
         }
     }
     private void commandExecutor(MessageReceivedEvent event, String message) throws SQLException, ExecutionException, InterruptedException {
+
         if (event.getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) event.getMessage().delete().queue();
         String[] args = message.split("\\s+");
         Main.logger.info(event.getAuthor().getAsTag() + " -> " + message + " (" + event.getGuild().getName() + ")");
@@ -107,6 +106,16 @@ public class CommandListener extends ListenerAdapter {
                     getInvite.execute(event);
                     getInvite = null;
                 }
+                break;
+            case "joke":
+                Joke joke = new Joke(args, event.getMember(), event.getAuthor());
+                joke.execute(event);
+                joke=null;
+                return;
+            case "kick":
+                Kick kick = new Kick(args, event.getMember(), event.getAuthor());
+                kick.execute(event);
+                kick=null;
                 break;
             case "leaderboard":
                 Leaderboard leaderboard = new Leaderboard(args, event.getMember(), event.getAuthor());
@@ -214,16 +223,31 @@ public class CommandListener extends ListenerAdapter {
                 banList.execute(event);
                 banList = null;
                 break;
-            /*case "warn":
+            case "warn":
             case "warning":
-            case "warnings":
                 Warn warn = new Warn(args, event.getMember(), event.getAuthor());
-                try {
-                    warn.execute(event);
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
+                warn.execute(event);
                 warn = null;
+                break;
+            case "warninglist":
+            case "warnings":
+                Warnings warnings = new Warnings(args, event.getMember(), event.getAuthor());
+                warnings.execute(event);
+                warnings=null;
+                break;
+            case "unwarn":
+            case "removewarn":
+            case "removewarning":
+                Unwarn unwarn = new Unwarn(args, event.getMember(), event.getAuthor());
+                unwarn.execute(event);
+                unwarn=null;
+                break;
+            case "clear":
+            case "clean":
+            /*case "purge":
+                Purge purge = new Purge(args, event.getMember(), event.getAuthor());
+                purge.execute(event);
+                purge=null;
                 break;*/
             default:
                 event.getChannel().sendMessage("I do not understand that command, " + event.getAuthor().getAsMention() + " \\:(").queue(message1 -> {

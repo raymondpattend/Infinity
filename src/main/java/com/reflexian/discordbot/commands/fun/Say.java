@@ -1,17 +1,19 @@
 package com.reflexian.discordbot.commands.fun;
 
+import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Say extends Command {
@@ -24,6 +26,12 @@ public class Say extends Command {
 
     @Override
     public void execute(MessageReceivedEvent event) {
+
+        if (!event.getMember().hasPermission(Permission.MESSAGE_MANAGE)) {
+            sendMessage(event.getTextChannel(), "Sorry, but you need ``MANAGE_MESSAGES`` permission to use this command, " + event.getAuthor().getAsMention()+"!", 15);
+            return;
+        }
+
         try {
             String[] args = event.getMessage().getContentRaw().split("\\s+");
             StringBuilder str = new StringBuilder();
@@ -35,7 +43,7 @@ public class Say extends Command {
             }
 
             if (str.length() >250) {
-                sendMessage(event.getTextChannel(), "You cannot send messages longer than 250, " + event.getAuthor().getAsMention()+".", 15);
+                sendMessage(event.getTextChannel(), "You cannot send messages longer than 250 characters, " + event.getAuthor().getAsMention()+".", 15);
                 return;
             }
 
@@ -68,9 +76,6 @@ public class Say extends Command {
         } catch (IllegalStateException | IllegalArgumentException e) {
             sendMessage(event.getTextChannel(), "Command must include text!\n**Example**: ``@Infinity#9388 say hello *30``", 20);
         }
-
-
-
     }
 
     @Override

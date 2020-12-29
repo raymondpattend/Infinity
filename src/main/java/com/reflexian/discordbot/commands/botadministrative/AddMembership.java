@@ -3,6 +3,7 @@ package com.reflexian.discordbot.commands.botadministrative;
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
 import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -23,6 +24,7 @@ public class AddMembership extends Command {
     @Override
     public void execute(MessageReceivedEvent event) throws SQLException {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
+        Server server = Server.getServer(event.getGuild());
         if (args.length <3) {
             EmbedBuilder no = new EmbedBuilder();
             no.setColor(new Color(186, 48, 48));

@@ -4,7 +4,6 @@ import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
 import com.reflexian.discordbot.listeners.CommandListener;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -17,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.sql.SQLException;
+import java.util.Date;
 
 public class Announce extends Command {
     public Announce(String[] command, @Nullable Member member, @Nullable User user) {
@@ -33,7 +33,7 @@ public class Announce extends Command {
     public void execute(MessageReceivedEvent event) throws SQLException {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
         if (args.length <3) {
-
+            // help embed soon :P
         }
 
         StringBuilder message = new StringBuilder();
@@ -44,6 +44,11 @@ public class Announce extends Command {
         this.message=message.toString();
 
         TextChannel textChannel = event.getTextChannel();
+        announcement.setTitle("Announcement Preview - Infinity");
+        announcement.setDescription("This is an important announcement from the developers of Infinity. Don't worry, only the server owners are sent this message (we respect your communities).");
+        announcement.addField("**Information**", message.toString(), false);
+        announcement.addField("**Note**", "We will hardly ever send these types of messages to you. We reserve this channel for **IMPORTANT** messages only. Infinity will **NEVER** ask you for personal information or account tokens.", false);
+        announcement.setTimestamp(new Date().toInstant());
         if (textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_WRITE)&&textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.VIEW_CHANNEL)) {
             textChannel.sendMessage(announcement.build()).queue(message1 -> {
                 this.id = message1.getIdLong();
@@ -61,10 +66,7 @@ public class Announce extends Command {
     public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
         if (event.getMember().getUser().isBot()) return;
         if (event.getChannel().getType().isGuild()&&event.getMessageIdLong()==this.id&&event.getMember()==this.member) {
-            JDA jda = Main.getJda();
-
             // EMOTE is a discord entity whist EMOJI is a normal EMOJI
-
             if (event.getReactionEmote().isEmoji()) {
                 event.retrieveMessage().queue(message -> {
                     message.removeReaction(event.getReactionEmote().getEmoji(), event.getMember().getUser()).queue();
@@ -72,22 +74,21 @@ public class Announce extends Command {
                 return;
             }
             event.retrieveMessage().queue(message -> {
-                message.getEmotes().clear();
+                message.removeReaction(event.getReactionEmote().getEmote(), event.getMember().getUser()).queue();
             });
 
             switch (event.getReactionEmote().getId()) {
                 // CHECKMARK
                 case "761713176882053190":
                     event.retrieveMessage().queue(message -> {
-
+                        message.delete().queue();
                     });
+                    announcement.setTitle("Important Announcement - Infinity");
+                    announcement.setDescription("This is an important announcement from the developers of Infinity. Don't worry, only the server owners are sent this message (we respect your communities).");
+                    announcement.addField("**Information**", message.toString(), false);
+                    announcement.setFooter("This is a 1-Time message.").setTimestamp(new Date().toInstant());
                     for (Guild guild : Main.getJda().getGuilds()) {
                         guild.getOwner().getUser().openPrivateChannel().queue(privateChannel -> {
-
-                            announcement.setTitle("Important Announcement - Infinity");
-                            announcement.setDescription("This is an important announcement from the developers of Infinity. Don't worry, only the server owners are sent this message (we respect your communities).");
-                            announcement.addField("**Information**", message.toString(), false);
-
                             privateChannel.sendMessage(announcement.build()).queue();
                         });
                     }

@@ -1,23 +1,17 @@
 package com.reflexian.discordbot.commands.administrative;
 
-import com.reflexian.discordbot.Main;
-import com.reflexian.discordbot.commands.fun.Embed;
 import com.reflexian.discordbot.listeners.Command;
-import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +23,7 @@ public class Leveling extends Command {
     @Override
     public void execute(MessageReceivedEvent event) throws SQLException {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
+        Server server = Server.getServer(event.getGuild());
         if (!event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
             sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No permission.").setDescription("You need ``MANAGE_SERVER`` permission to use this command!\nTrying to get your level? Use ``@Infinity#9388 rank``").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
             return;
@@ -48,87 +43,56 @@ public class Leveling extends Command {
         if (args.length == 3) {
             switch (args[2].toLowerCase()) {
                 case "enable":
-                    PreparedStatement ps = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId() + ";");
-                    ResultSet rs = ps.executeQuery();
-                    if (rs.next()) {
-                        if (!rs.getBoolean("level_enabled")) {
-                            MySQL.setBool("guild_data", "level_enabled", true, "guild_id", event.getGuild().getId());
-                            sendMessage(event.getTextChannel(), this.valueSet("Leveling Enabled", true, false).build(), 60);
-                        } else {
-                            sendMessage(event.getTextChannel(), this.valueSet("Leveling Enabled", true, true).build(), 60);
-                        }
+                    if (server.getSettings().isLevel_enabled()){
+                        server.getSettings().setLevel_enabled(true);
+                        sendMessage(event.getTextChannel(), this.valueSet("Leveling Enabled", true, false).build(), 60);
                     } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
+                        sendMessage(event.getTextChannel(), this.valueSet("Leveling Enabled", true, true).build(), 60);
                     }
                     return;
                 case "disable":
-                    PreparedStatement ps2 = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId() + ";");
-                    ResultSet rs2 = ps2.executeQuery();
-                    if (rs2.next()) {
-                        if (rs2.getBoolean("level_enabled")) {
-                            MySQL.setBool("guild_data", "level_enabled", false, "guild_id", event.getGuild().getId());
-                            sendMessage(event.getTextChannel(), this.valueSet("Leveling Enabled", false, false).build(), 60);
-                        } else {
-                            sendMessage(event.getTextChannel(), this.valueSet("Leveling Enabled", false, true).build(), 60);
-                        }
+                    if (!server.getSettings().isLevel_enabled()) {
+                        server.getSettings().setLevel_enabled(false);
+                        sendMessage(event.getTextChannel(), this.valueSet("Leveling Enabled", false, false).build(), 60);
                     } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
+                        sendMessage(event.getTextChannel(), this.valueSet("Leveling Enabled", false, true).build(), 60);
                     }
                     return;
                 case "message":
                 case "getmessage":
-                    PreparedStatement ps3 = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId() + ";");
-                    ResultSet rs3 = ps3.executeQuery();
-                    if (rs3.next()) {
-                        EmbedBuilder value = new EmbedBuilder().setTitle("Current Level Up Message").setDescription("```" + rs3.getString("level_message") + "```\n``%usermention%`` **-** The mention of the user\n``%usertag%`` **-** The tag of the user\n``%previous%`` **-** The previous level number\n``%new%`` **-** The new level number").setColor(new Color(36, 70, 128)).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
-                        sendMessage(event.getTextChannel(), value.build(), 60);
-                    } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
-                    }
+                    EmbedBuilder value = new EmbedBuilder().setTitle("Current Level Up Message").setDescription("```" + server.getSettings().getLevel_message() + "```\n``%usermention%`` **-** The mention of the user\n``%usertag%`` **-** The tag of the user\n``%previous%`` **-** The previous level number\n``%new%`` **-** The new level number").setColor(new Color(36, 70, 128)).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+                    sendMessage(event.getTextChannel(), value.build(), 60);
                     return;
                 case "listroles":
-                    PreparedStatement ps4 = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId() + ";");
-                    ResultSet rs4 = ps4.executeQuery();
-                    if (rs4.next()) {
-                        Map<Integer, Long> roleToIntegerMap = new HashMap<>();
-                        for (String string : rs4.getString("level_roles").split(",")) {
-                            try {
-                                int a;
-                                if (string.split(":")[0].equals("none")) a = 0;
-                                else a = Integer.parseInt(string.split(":")[0]);
-                                Long b = Long.parseLong(string.split(":")[1]);
-                                roleToIntegerMap.put(a, b);
-                            } catch (ArrayIndexOutOfBoundsException ignored) {
-                            }
+                    Map<Integer, Long> roleToIntegerMap = new HashMap<>();
+                    for (String string : server.getSettings().getLevel_roles().split(",")) {
+                        try {
+                            int a;
+                            if (string.split(":")[0].equals("none")) a = 0;
+                            else a = Integer.parseInt(string.split(":")[0]);
+                            Long b = Long.parseLong(string.split(":")[1]);
+                            roleToIntegerMap.put(a, b);
+                        } catch (ArrayIndexOutOfBoundsException ignored) {
                         }
-                        EmbedBuilder roleValues = new EmbedBuilder().setTitle("Level Up Roles").setDescription("These are the levels assigned to users when they level up to a certain level.").setColor(new Color(49, 112, 189)).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
-                        if (roleToIntegerMap.size() == 0) {
-                            roleValues.addField("No Roles Found", "This guild doesn't have any saved role rewards!", false);
-                        } else {
-                            roleToIntegerMap.forEach((key, value) -> {
-                                try {
-                                    roleValues.addField(event.getGuild().getRoleById(value) == null ? "Invalid Role ID" : event.getGuild().getRoleById(value).getName() + " - LVL. " + key, event.getGuild().getRoleById(value).getId(), false);
-                                }catch (NullPointerException e) {
-                                    roleValues.addField("Invalid Role - " + value, "This role was most likely deleted. Remember to remove it from Infinity's leveling rewards!", false);
-                                }
-                            });
-                        }
-                        sendMessage(event.getTextChannel(), roleValues.build(), 40);
-                        return;
-                    } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
                     }
+                    EmbedBuilder roleValues = new EmbedBuilder().setTitle("Level Up Roles").setDescription("These are the levels assigned to users when they level up to a certain level.").setColor(new Color(49, 112, 189)).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+                    if (roleToIntegerMap.size() == 0) {
+                        roleValues.addField("No Roles Found", "This guild doesn't have any saved role rewards!", false);
+                    } else {
+                        roleToIntegerMap.forEach((key, value2) -> {
+                            try {
+                                roleValues.addField(event.getGuild().getRoleById(value2) == null ? "Invalid Role ID" : event.getGuild().getRoleById(value2).getName() + " - LVL. " + key, event.getGuild().getRoleById(value2).getId(), false);
+                            }catch (NullPointerException e) {
+                                roleValues.addField("Invalid Role - " + value2, "This role was most likely deleted. Remember to remove it from Infinity's leveling rewards!", false);
+                            }
+                        });
+                    }
+                    sendMessage(event.getTextChannel(), roleValues.build(), 40);
                     return;
                 case "getchannel":
-                    PreparedStatement ps5 = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId() + ";");
-                    ResultSet rs5 = ps5.executeQuery();
-                    if (rs5.next()) {
-                        TextChannel textChannel = rs5.getLong("level_channel") == 0 ? null : event.getGuild().getTextChannelById(rs5.getLong("level_channel"));
-                        EmbedBuilder value = new EmbedBuilder().setTitle("Current Level Up Channel").setDescription("" + (textChannel == null ? "No valid channel has been set!" : textChannel.getAsMention())).setColor(new Color(36, 70, 128)).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
-                        sendMessage(event.getTextChannel(), value.build(), 60);
-                    } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
-                    }
+                    TextChannel textChannel = server.getSettings().getLevel_channel() == 0 ? null : event.getGuild().getTextChannelById(server.getSettings().getLevel_channel());
+                    EmbedBuilder value3 = new EmbedBuilder().setTitle("Current Level Up Channel").setDescription("" + (textChannel == null ? "No valid channel has been set!" : textChannel.getAsMention())).setColor(new Color(36, 70, 128)).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+                    sendMessage(event.getTextChannel(), value3.build(), 60);
                     return;
                 case "setmessage":
                     EmbedBuilder helpSetMessage = new EmbedBuilder().setColor(new Color(189, 55, 55)).setTitle("Help - Leveling;SetMessage").addField("Correct Usage", "```@Infinity#9833 leveling setmessage <value>```", false).addField("Example", "```@Infinity#9833 leveling setmessage %usermention% leveled up to %new%!!!```", false).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
@@ -157,7 +121,7 @@ public class Leveling extends Command {
         } else if (args.length == 4) {
             switch (args[2].toLowerCase()) {
                 case "setmessage":
-                    MySQL.setString("guild_data", "level_message", args[3], "guild_id", event.getGuild().getId());
+                    server.getSettings().setLevel_message(args[3]);
                     sendMessage(event.getTextChannel(), this.valueSet("Level Up Message", "```" + args[3] + "```", false).build(), 40);
                     return;
                 case "addrole":
@@ -170,21 +134,18 @@ public class Leveling extends Command {
                         sendMessage(event.getTextChannel(), failed.build(), 40);
                         return;
                     }
-                    MySQL.setString("guild_data", "level_channel", event.getMessage().getMentionedChannels().get(0).getId(), "guild_id", event.getGuild().getId());
+                    server.getSettings().setLevel_channel(event.getMessage().getMentionedChannels().get(0).getIdLong());
                     sendMessage(event.getTextChannel(), this.valueSet("Level Up Channel",  event.getMessage().getMentionedChannels().get(0).getName(), false).build(), 60);
                     return;
                 case "removerole":
 
                     try {
-                        PreparedStatement ps = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId());
-                        ResultSet rs = ps.executeQuery();
-                        if (rs.next()) {
 
-                            StringBuilder roles = new StringBuilder().append(rs.getString("level_roles"));
+                            StringBuilder roles = new StringBuilder().append(server.getSettings().getLevel_roles());
                             if (roles.toString().contains(args[3])&&args[3].length()==18) {
                                 Map<Integer, Long> roleToIntegerMap = new HashMap<>();
                                 StringBuilder newValue = new StringBuilder();
-                                for (String string : rs.getString("level_roles").split(",")) {
+                                for (String string : server.getSettings().getLevel_roles().split(",")) {
                                     try {
                                         int a;
                                         if (string.split(":")[0].equals("none")) a = 0;
@@ -197,10 +158,9 @@ public class Leveling extends Command {
                                 roleToIntegerMap.forEach((key, value) -> {
                                     if (value.equals(Long.parseLong(args[3]))) {}
                                     else newValue.append(key).append(":").append(value).append(",");
-                                    //else roleValues.addField(event.getGuild().getRoleById(value) == null ? "Invalid Role ID" : event.getGuild().getRoleById(value).getName() + " - LVL. " + key, event.getGuild().getRoleById(value).getId(), false);
                                 });
-                                if (newValue.toString().split(":").length == 0|| newValue.toString().equals("")) MySQL.setString("guild_data", "level_roles", "none", "guild_id", event.getGuild().getId());
-                                else MySQL.setString("guild_data", "level_roles", newValue.toString(), "guild_id", event.getGuild().getId());
+                                if (newValue.toString().split(":").length == 0|| newValue.toString().equals("")) server.getSettings().setLevel_roles("none");
+                                else server.getSettings().setLevel_roles(newValue.toString());
                                 EmbedBuilder success = new EmbedBuilder().setColor(new Color(37, 116, 59)).setTitle("Success!").setDescription("Successfully removed role with id **" + args[3] + ".").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
                                 sendMessage(event.getTextChannel(), success.build(), 60);
                             } else {
@@ -208,11 +168,6 @@ public class Leveling extends Command {
                                 sendMessage(event.getTextChannel(), failed.build(), 25);
                             }
                             return;
-
-                        }else {
-                            sendMessage(event.getTextChannel(), this.errorEmbed.build(), 40);
-                            return;
-                        }
                     }catch (NumberFormatException e) {
                         EmbedBuilder failed = new EmbedBuilder().setColor(new Color(185, 55, 55)).setTitle("Invalid Numbers").setDescription("You can only include numbers for the value!").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
                         sendMessage(event.getTextChannel(), failed.build(), 25);
@@ -227,7 +182,7 @@ public class Leveling extends Command {
                     if (string.equals(args[0]) || string.equals(args[1]) || string.equals(args[2])) continue;
                     st.append(string).append(" ");
                 }
-                MySQL.setString("guild_data", "level_message", st.toString(), "guild_id", event.getGuild().getId());
+                server.getSettings().setLevel_message(st.toString());
                 sendMessage(event.getTextChannel(), this.valueSet("Level Up Message", "```" + st.toString() + "```", false).build(), 40);
                 return;
             case "addrole":
@@ -241,25 +196,16 @@ public class Leveling extends Command {
                         sendMessage(event.getTextChannel(), failed.build(), 40);
                         return;
                     }
-                    PreparedStatement ps = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId());
-                    ResultSet rs = ps.executeQuery();
-
-                    if (rs.next()) {
-                        StringBuilder roles = new StringBuilder().append(rs.getString("level_roles"));
-                        if (roles.toString().contains("," + a + ":")) {
-                            EmbedBuilder failed = new EmbedBuilder().setColor(new Color(185, 55, 55)).setTitle("Level Reward already set!").setDescription("The level you would like the role to be applied to is already set. You can remove the role using ``@Infinity#9833 leveling rolelist`` and find the role ID in question.").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
-                            sendMessage(event.getTextChannel(), failed.build(), 40);
-                            return;
-                        }
-                        roles.append(",").append(a).append(":").append(b);
-                        MySQL.setString("guild_data", "level_roles", roles.toString().replace("none,",""), "guild_id", event.getGuild().getId());
-                        EmbedBuilder success = new EmbedBuilder().setColor(new Color(37, 116, 59)).setTitle("Success!").setDescription("Successfully added role **" + event.getGuild().getRoleById(b).getName() + "** for level **" + a + "**!").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
-                        sendMessage(event.getTextChannel(), success.build(), 40);
-                        System.out.println(roles.toString().replace("none,",""));
-
-                    } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
+                    StringBuilder roles = new StringBuilder().append(server.getSettings().getLevel_roles());
+                    if (roles.toString().contains("," + a + ":")) {
+                        EmbedBuilder failed = new EmbedBuilder().setColor(new Color(185, 55, 55)).setTitle("Level Reward already set!").setDescription("The level you would like the role to be applied to is already set. You can remove the role using ``@Infinity#9833 leveling rolelist`` and find the role ID in question.").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+                        sendMessage(event.getTextChannel(), failed.build(), 40);
+                        return;
                     }
+                    roles.append(",").append(a).append(":").append(b);
+                    server.getSettings().setLevel_roles(roles.toString().replace("none,",""));
+                    EmbedBuilder success = new EmbedBuilder().setColor(new Color(37, 116, 59)).setTitle("Success!").setDescription("Successfully added role **" + event.getGuild().getRoleById(b).getName() + "** for level **" + a + "**!").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+                    sendMessage(event.getTextChannel(), success.build(), 40);
                 } catch (NumberFormatException e) {
                     EmbedBuilder failed = new EmbedBuilder().setColor(new Color(185, 55, 55)).setTitle("Invalid Numbers").setDescription("You can only include numbers for the first and second value!").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
                     sendMessage(event.getTextChannel(), failed.build(), 25);

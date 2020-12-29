@@ -1,11 +1,8 @@
 package com.reflexian.discordbot.events.runnables;
 
 import com.reflexian.discordbot.Main;
-import com.reflexian.discordbot.events.threads.MySQLThread;
-import com.reflexian.discordbot.mysql.MySQL;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 
 import java.sql.SQLException;
 
@@ -31,10 +28,7 @@ public class PlayerCounter implements Runnable {
             if (num == 0) {
                 int i = 0;
                 for (Guild guild : Main.getJda().getGuilds()) {
-                    for (Member member : guild.getMembers()) {
-                        if (member.getUser().isBot()) continue;
-                        i++;
-                    }
+                    i+=guild.getMemberCount();
                 }
                 Main.getJda().getPresence().setActivity(Activity.playing("with " + i + " users | @Infinity#9833 help"));
                 num=1;
@@ -42,7 +36,12 @@ public class PlayerCounter implements Runnable {
                 Main.getJda().getPresence().setActivity(Activity.playing("with " + (Main.getJda().getGuilds().size()) + " guilds | @Infinity#9833 help"));
                 num=2;
             } else if (num==2) {
-                Main.getJda().getPresence().setActivity(Activity.playing("@Infinity#9833"));
+                Main.getJda().getPresence().setActivity(Activity.playing("@Infinity#9833 help"));
+                try {
+                    Main.getPlugin().executeQuery("SELECT * FROM guild_data", true);
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
                 num=0;
             }
 

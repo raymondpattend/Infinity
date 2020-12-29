@@ -1,24 +1,32 @@
 package com.reflexian.discordbot.events.guildevents;
 
 import com.reflexian.discordbot.Main;
+import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.utilities.Captcha;
+import com.reflexian.discordbot.utilities.UtilStrings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class GuildJoinCaptcha extends ListenerAdapter {
-
-    private Map<User, String> codes = new HashMap<>();
 
     @Override
     public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
@@ -26,54 +34,60 @@ public class GuildJoinCaptcha extends ListenerAdapter {
         if (event.getMember().getUser().isBot()) return;
         if (!event.getGuild().getId().equals("770142850633433094")) return;
 
-        EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setColor(new Color(91, 132, 215));
-        embedBuilder.setTitle("Welcome to " + event.getGuild().getName() + "!");
-        embedBuilder.setDescription("In order to continue to our server, you must pass this simple captcha.\nSimply press the <:greenCheck:761713176882053190> emoji to verify!");
-        embedBuilder.addField("Bot offline?", "If the bot is offline or nothing happens when you press <:greenCheck:761713176882053190>, contact a staff member.", false);
-        embedBuilder.setThumbnail(event.getGuild().getIconUrl());
-        embedBuilder.setFooter("Made by Reflexian LLC");
-        event.getMember().getUser().openPrivateChannel().queue(privateChannel -> {
+        String code = UtilStrings.generateRandomChars("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 5);
+        MySQL.setString("user_data", "verification_code", code, "user_key",event.getMember().getId()+"#770142850633433094");
 
-            privateChannel.sendMessage(embedBuilder.build()).queue(message -> {
-                message.addReaction(":greenCheck:761713176882053190").queue();
-            });
-            Main.logger.info("Sent verification to " + event.getMember().getUser().getAsTag() + " in " + event.getGuild().getName());
+        Captcha captcha = new Captcha(150, 50);
+        captcha.background(new Color(91, 132, 215));
+        captcha.text(code);
+        captcha.noiseCurvedLine();
+        //captcha.distortion();
+        BufferedImage image = captcha.getImage();
+
+        File file = new File("temp.png");
+        try {
+            ImageIO.write(image, "png", file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        EmbedBuilder message = new EmbedBuilder();
+        message.setColor(new Color(91, 132, 215));
+        message.setTitle("Welcome to " + event.getGuild().getName() + "!");
+        message.setThumbnail(event.getGuild().getIconUrl());
+        message.setDescription("Please send the captcha code here.\n\nIn order to continue, you must pass this captcha.\n**NOTE:** This is **Case-Sensitive**.");
+        message.addField("", "**Your captcha:**", false);
+        message.setImage("attachment://temp.png");
+        message.setFooter("Contact a moderator if something goes wrong.", event.getMember().getUser().getAvatarUrl()).setTimestamp(new Date().toInstant());
+        System.out.println("Sent captcha to " + event.getMember().getUser().getAsTag()+".");
+        event.getMember().getUser().openPrivateChannel().queue(privateChannel -> {
+            privateChannel.sendFile(file, "temp.png").embed(message.build()).queue();
         });
 
     }
+
 
     @Override
-    public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
-        if (event.getChannelType().isGuild()||event.getUser().isBot()||Main.getJda().getGuildById("770142850633433094").getMemberById(event.getUserId())==null) return;
-        event.getChannel().retrieveMessageById(event.getMessageId()).queue(message -> {
-
-            try {
-                if (message.getAuthor().isBot()&&message.getEmbeds().get(0).getTitle().startsWith("Welcome to ")&&event.getReaction().getReactionEmote().getEmote().getName().equals("greenCheck")) {
-                    JDA jda = Main.getJda();
-                    if (Objects.requireNonNull(jda.getGuildById("770142850633433094")).getMemberById(event.getUserId()) != null) {
-                        Main.getJda().getGuildById("770142850633433094").addRoleToMember(jda.getGuildById("770142850633433094").getMemberById(event.getUserId()), Objects.requireNonNull(event.getJDA().getRoleById("770172614790086677"))).queue();
-                        event.getChannel().sendMessage("You have been verified!").queue();
-                        Main.logger.info(event.getUser().getAsTag() + " has been verified in LostInSpace Support.");
-                    }
-                }
-            } catch (IllegalStateException ignored) {}
-
-
-
-
-        }, (failure) -> {
-            if (failure instanceof ErrorResponseException) {
-                ErrorResponseException ex = (ErrorResponseException) failure;
-                if (ex.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
-                    event.getChannel().sendMessage("Something went wrong, try rejoining the server ;(").queue();
-                }
-            }
-        });
-
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if (event.getChannelType().isGuild()||event.getAuthor().isBot()) return;
+        String key=MySQL.getString("user_data", "verification_code", "user_key", event.getAuthor().getIdLong()+"#770142850633433094");
+        if (key==null||key.equals("verified")) {
+            event.getPrivateChannel().sendMessage("Sorry, but I do not accept commands in DMs. Please use my commands in a server!").queue();
+            return;
+        }
+        if (event.getMessage().getContentRaw().equals(key)) {
+            System.out.println(event.getAuthor().getAsTag() + " completed the captcha.");
+            event.getPrivateChannel().sendMessage(new EmbedBuilder().setTitle("Verified").setDescription("You have successfully passed the captcha! Enjoy yourself in our server \\:)").setColor(new Color(30, 114, 161)).build()).queue();
+            Role role = event.getJDA().getGuildById(770142850633433094L).getRoleById(770172614790086677L);
+            event.getJDA().getGuildById(770142850633433094L).addRoleToMember(event.getAuthor().getId(), role).queue();
+            MySQL.setString("user_data", "verification_code", "verified", "user_key",event.getAuthor().getId()+"#770142850633433094");
+            return;
+        }
+        event.getPrivateChannel().sendMessage(new EmbedBuilder().setTitle("Wrong Code").setDescription("That is the wrong code! Try again. \\:(").setColor(new Color(158, 47, 47)).build()).queue();
     }
 
-    /*@Override
+     /*@Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (event.getMessage().getContentRaw().equals("o")) {
             EmbedBuilder embedBuilder = new EmbedBuilder();
@@ -108,7 +122,6 @@ public class GuildJoinCaptcha extends ListenerAdapter {
         message.setColor(new Color(91, 132, 215));
         message.setTitle("Welcome to " + event.getGuild().getName() + "!");
         message.setDescription("Please send the captcha code here.\n\nIn order to continue, you must pass this captcha.\n**NOTE:** This is **Case-Sensitive**.\n⠀");
-        //TODO Remove the captcha result or else this whole thing is useless
         message.addField("", "**Your captcha:**   3 Attempts Remaining **"+captcha.getText()+"**", false);
         message.setImage("attachment://temp.png");
         message.setFooter("You can request a new captcha using !captcha", event.getMember().getUser().getAvatarUrl());

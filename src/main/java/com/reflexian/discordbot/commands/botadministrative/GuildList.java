@@ -3,7 +3,7 @@ package com.reflexian.discordbot.commands.botadministrative;
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
 import com.reflexian.discordbot.listeners.CommandListener;
-import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -116,7 +116,7 @@ public class GuildList extends Command {
                     if (member.getUser().isBot()) continue;
                     members++;
                 }
-                if (MySQL.getBool("guild_data", "verified", "guild_id", guild.getId())) em.addField("#"+i+" "+"<:verified:785194601240723507> ["+guild.getName()+"]", guild.getOwner().getUser().getAsTag() + " | " + guild.getMemberCount()  + "/" + (guild.getMemberCount()-members) + " | " + guild.getId(), false);
+                if (Server.getServer(guild).getSettings().isVerified()) em.addField("#"+i+" "+"<:verified:785194601240723507> ["+guild.getName()+"]", guild.getOwner().getUser().getAsTag() + " | " + guild.getMemberCount()  + "/" + (guild.getMemberCount()-members) + " | " + guild.getId(), false);
                 else em.addField("#"+i+" " +guild.getName()+"", guild.getOwner().getUser().getAsTag() + " | " + members + "/" + (guild.getMemberCount()-members) + " | " + guild.getId(), false);
             }
         }catch (IndexOutOfBoundsException ignored) {}

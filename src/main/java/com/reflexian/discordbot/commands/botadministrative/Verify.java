@@ -2,7 +2,7 @@ package com.reflexian.discordbot.commands.botadministrative;
 
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
-import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -24,6 +24,7 @@ public class Verify extends Command {
     @Override
     public void execute(MessageReceivedEvent event) throws SQLException {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
+        Server server = Server.getServer(event.getGuild());
         if (args.length <3) {
             EmbedBuilder no = new EmbedBuilder();
             no.setColor(new Color(186, 48, 48));
@@ -40,7 +41,7 @@ public class Verify extends Command {
             Guild guild = Main.getJda().getGuildById(id);
             em.setTitle("<:verified:785194601240723507> "+guild.getName()+" is now verified!");
             em.setDescription("This means they aren't filled with bots. No other perks are given to them.");
-            MySQL.setBool("guild_data", "verified", true, "guild_id", guild.getId());
+            server.getSettings().setVerified(true);
             event.getChannel().sendMessage(em.build()).queue();
         }catch (NumberFormatException | NullPointerException e) {
             em.setColor(new Color(179, 64, 64));

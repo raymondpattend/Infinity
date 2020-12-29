@@ -3,6 +3,7 @@ package com.reflexian.discordbot.commands.leveling;
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
 import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -13,7 +14,7 @@ import java.awt.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
+import java.util.Date;
 
 public class Rank extends Command {
 
@@ -26,8 +27,9 @@ public class Rank extends Command {
     public void execute(MessageReceivedEvent event) throws SQLException {
 
         String[] args = event.getMessage().getContentRaw().split("\\s+");
+        Server server = Server.getServer(event.getGuild());
 
-        if (!MySQL.getBool("guild_data","level_enabled", "guild_id", event.getGuild().getId())) {
+        if (!server.getSettings().isLevel_enabled()) {
             EmbedBuilder em = new EmbedBuilder();
             em.setColor(new Color(151, 30, 30));
             em.setTitle("Disabled.");
@@ -60,15 +62,18 @@ public class Rank extends Command {
             EmbedBuilder rank = new EmbedBuilder();
             rank.setTitle("Level for " + user.getAsTag());
 
-            PreparedStatement ps = Main.getPlugin().getConnection()
-                    .prepareStatement("SELECT * FROM user_data WHERE user_key='" + member.getId() + "#"+ event.getGuild().getId() +"';");
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                rank.setDescription("**Level** " + rs.getLong("leveling_level")+"\n**Level Progress** " + rs.getLong("leveling_xp") + "/" + rs.getLong("leveling_xpneeded")+"\n**XP for Next Level** " + (rs.getLong("leveling_xpneeded")-rs.getLong("leveling_xp")));
+
+            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+event.getAuthor().getId()+"#"+event.getGuild().getId()+"';", true);
+
+            if (!rs.next()) {
+                MySQL.createMember(event.getMember(), event.getGuild());
+
+                rank.setDescription("**Level** 0\n**Level Progress** 0/100\n**XP for Next Level** 100");
             } else {
-                rank.setDescription("**Level** None\n**Level Progress** 0/100\n**XP for Next Level** 100\n**They haven't send any messages D:**");
+                rank.setDescription("**Level** " + rs.getLong("leveling_level")+"\n**Level Progress** " + rs.getLong("leveling_xp") + "/" + rs.getLong("leveling_xpneeded")+"\n**XP for Next Level** " + (rs.getLong("leveling_xpneeded")-rs.getLong("leveling_xp")));
             }
-            rank.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+
+            rank.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setTimestamp(new Date().toInstant());
             sendMessage(event.getTextChannel(), rank.build(), 15);
         }catch (NullPointerException | NumberFormatException e) {
             sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Not a valid user.").setDescription("You must include a valid id or mention.").setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);

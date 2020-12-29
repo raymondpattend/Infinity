@@ -2,7 +2,7 @@ package com.reflexian.discordbot.commands.administrative;
 
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
-import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -12,8 +12,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Log extends Command {
@@ -26,6 +24,7 @@ public class Log extends Command {
     @Override
     public void execute(MessageReceivedEvent event) throws SQLException {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
+        Server server = Server.getServer(event.getGuild());
         if (!event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
             sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No permission.").setDescription("You need ``MANAGE_SERVER`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
             return;
@@ -37,43 +36,25 @@ public class Log extends Command {
         if (args.length == 3) {
             switch (args[2].toLowerCase()) {
                 case "enable":
-                    PreparedStatement ps = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId() + ";");
-                    ResultSet rs = ps.executeQuery();
-                    if (rs.next()) {
-                        if (!rs.getBoolean("logging_enabled")) {
-                            MySQL.setBool("guild_data", "logging_enabled", true, "guild_id", event.getGuild().getId());
-                            sendMessage(event.getTextChannel(), this.valueSet("Logging Enabled", true, false).build(), 60);
-                        } else {
-                            sendMessage(event.getTextChannel(), this.valueSet("Logging Enabled", true, true).build(), 60);
-                        }
+                    if (!server.getSettings().isLogging_enabled()) {
+                        server.getSettings().setLogging_enabled(true);
+                        sendMessage(event.getTextChannel(), this.valueSet("Logging Enabled", true, false).build(), 60);
                     } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
+                        sendMessage(event.getTextChannel(), this.valueSet("Logging Enabled", true, true).build(), 60);
                     }
                     return;
                 case "disable":
-                    PreparedStatement ps2 = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId() + ";");
-                    ResultSet rs2 = ps2.executeQuery();
-                    if (rs2.next()) {
-                        if (rs2.getBoolean("logging_enabled")) {
-                            MySQL.setBool("guild_data", "logging_enabled", false, "guild_id", event.getGuild().getId());
-                            sendMessage(event.getTextChannel(), this.valueSet("Logging Enabled", false, false).build(), 60);
-                        } else {
-                            sendMessage(event.getTextChannel(), this.valueSet("Logging Enabled", false, true).build(), 60);
-                        }
+                    if (server.getSettings().isLogging_enabled()) {
+                        server.getSettings().setLogging_enabled(false);
+                        sendMessage(event.getTextChannel(), this.valueSet("Logging Enabled", false, false).build(), 60);
                     } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
+                        sendMessage(event.getTextChannel(), this.valueSet("Logging Enabled", false, true).build(), 60);
                     }
                     return;
                 case "getchannel":
-                    PreparedStatement ps5 = Main.getPlugin().getConnection().prepareStatement("SELECT * FROM guild_data WHERE guild_id = " + event.getGuild().getId() + ";");
-                    ResultSet rs5 = ps5.executeQuery();
-                    if (rs5.next()) {
-                        TextChannel textChannel = rs5.getLong("logging_channel") == 0 ? null : event.getGuild().getTextChannelById(rs5.getLong("logging_channel"));
-                        EmbedBuilder value = new EmbedBuilder().setTitle("Current Logging Channel").setDescription("" + (textChannel == null ? "No valid channel has been set!" : textChannel.getAsMention())).setColor(new Color(36, 70, 128)).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
-                        sendMessage(event.getTextChannel(), value.build(), 60);
-                    } else {
-                        sendMessage(event.getTextChannel(), errorEmbed.build(), 40);
-                    }
+                    TextChannel textChannel = server.getSettings().getLogging_channel() == 0 ? null : event.getGuild().getTextChannelById(server.getSettings().getLogging_channel());
+                    EmbedBuilder value = new EmbedBuilder().setTitle("Current Logging Channel").setDescription("" + (textChannel == null ? "No valid channel has been set!" : textChannel.getAsMention())).setColor(new Color(36, 70, 128)).setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+                    sendMessage(event.getTextChannel(), value.build(), 60);
                     return;
                 default:
                     sendMessage(event.getTextChannel(), help.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).build(), 60);
@@ -87,7 +68,7 @@ public class Log extends Command {
                         sendMessage(event.getTextChannel(), failed.build(), 40);
                         return;
                     }
-                    MySQL.setString("guild_data", "logging_channel", event.getMessage().getMentionedChannels().get(0).getId(), "guild_id", event.getGuild().getId());
+                    server.getSettings().setLogging_channel(event.getMessage().getMentionedChannels().get(0).getIdLong());
                     sendMessage(event.getTextChannel(), this.valueSet("Logging Channel",  event.getMessage().getMentionedChannels().get(0).getName(), false).build(), 60);
                     return;
                 default:

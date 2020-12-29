@@ -1,13 +1,11 @@
 package com.reflexian.discordbot.events.guildevents;
 
 import com.reflexian.discordbot.Main;
-import com.reflexian.discordbot.commands.fun.Embed;
 import com.reflexian.discordbot.events.threads.MySQLThread;
 import com.reflexian.discordbot.mysql.MySQL;
 import com.reflexian.discordbot.utilities.ChannelUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;

@@ -11,10 +11,10 @@ public class GuildLeaveEvent extends ListenerAdapter {
 
     @Override
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
-        try {
+        /*try {
             MySQL.deleteMember(event.getMember(), event.getGuild());
         } catch (SQLException | NullPointerException throwables) {
             throwables.printStackTrace();
-        }
+        }*/
     }
 }

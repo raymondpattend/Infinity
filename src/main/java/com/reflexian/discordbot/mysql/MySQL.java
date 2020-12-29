@@ -3,14 +3,11 @@ package com.reflexian.discordbot.mysql;
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.events.threads.MySQLThread;
 import com.reflexian.discordbot.utilities.UtilStrings;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class MySQL {
 
@@ -42,6 +39,8 @@ public class MySQL {
         preparedStatement.setInt(4, 0);
         preparedStatement.setLong(5, 0);
         preparedStatement.execute();
+        Server server = new Server(guild);
+        Server.SERVER_MAP.put(guild.getIdLong(), server);
     }
 
     public static void createMember(Member member, Guild guild) throws SQLException {

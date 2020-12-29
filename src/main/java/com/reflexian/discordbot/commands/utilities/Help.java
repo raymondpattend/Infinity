@@ -38,7 +38,7 @@ public class Help extends Command {
         }
 
         if (event.getMember().hasPermission(Permission.BAN_MEMBERS)) {
-            help.addField("Moderation", "Ban **-** Permanently Ban a user\nUnban **-** Unban a banned user\nBanList **-** List all the banned players",false);
+            help.addField("Moderation", "Ban **-** Permanently Ban a user\nKick **-** Remove a user from this guild\nUnban **-** Remove the ban from a banned user\nBanlist **-** List all the banned players\nWarn **-** Issue a warning to a member\nUnwarn **-** Remove all warnings from a member",false);
         }
         if (event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
             help.addField("Administrator","Config **-** Configure settings\nLeveling **-** Change leveling settings\nLog **-** Log messages to a channel",false); // Leveling **-** Change leveling settings

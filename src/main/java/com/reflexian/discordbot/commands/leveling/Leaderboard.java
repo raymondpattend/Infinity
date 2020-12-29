@@ -2,7 +2,7 @@ package com.reflexian.discordbot.commands.leveling;
 
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
-import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -23,8 +23,8 @@ public class Leaderboard extends Command {
 
     @Override
     public void execute(MessageReceivedEvent event) throws SQLException {
-
-        if (!MySQL.getBool("guild_data","level_enabled", "guild_id", event.getGuild().getId())) {
+        Server server = Server.getServer(event.getGuild());
+        if (!server.getSettings().isLevel_enabled()) {
             EmbedBuilder em = new EmbedBuilder();
             em.setColor(new Color(151, 30, 30));
             em.setTitle("Disabled.");
@@ -49,6 +49,10 @@ public class Leaderboard extends Command {
         while(rs.next()&&i<10) {
             i++;
             User user = event.getJDA().getUserById(rs.getString("user_key").split("#")[0]);
+            if (user==null) {
+                i--;
+                continue;
+            }
             em.addField("#" + i + ". " +user.getAsTag(), "Level " + rs.getLong("leveling_level") + " XP " + rs.getLong("leveling_xp")+"/"+rs.getLong("leveling_xpneeded"), false);
         }
         em.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());

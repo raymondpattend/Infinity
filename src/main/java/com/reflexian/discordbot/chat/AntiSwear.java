@@ -1,6 +1,5 @@
 package com.reflexian.discordbot.chat;
 
-import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.events.log.MessageLoader;
 import com.reflexian.discordbot.mysql.MySQL;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -14,9 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -119,7 +115,7 @@ public class AntiSwear extends ListenerAdapter {
 
     public static List<String> words = new ArrayList<String>();
 
-    public static void saveTheList() {
+    /*public static void saveTheList() {
         URL url = null;
         try {
             url = new URL("https://pastebin.com/raw/VKqjZaCA");
@@ -140,7 +136,7 @@ public class AntiSwear extends ListenerAdapter {
                 return;
             }
         }
-    }
+    }*/
 
     private boolean isEnabled(long id) {
         return MySQL.getBool("guild_data", "logging_enabled", "guild_id", id + "");

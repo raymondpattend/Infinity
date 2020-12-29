@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
 
 public class BanList extends Command {
 
@@ -41,7 +40,6 @@ public class BanList extends Command {
                     em.addField("No Bans", "This server has no bans :D", false);
                 }
                 for(Guild.Ban ban : bans) {
-                    System.out.println(ban.getReason() + " " + ban.getUser().getAsTag());
                     em.addField(ban.getUser().getAsTag()+":"+ban.getUser().getIdLong(), (ban.getReason()==null ? "No Reason Provided" : ban.getReason()) , false);
                 }
                 sendMessage(textChannel, em.build(), 60);
