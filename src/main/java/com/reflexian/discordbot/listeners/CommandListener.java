@@ -4,7 +4,6 @@ import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.commands.administrative.Config;
 import com.reflexian.discordbot.commands.administrative.Log;
 import com.reflexian.discordbot.commands.botadministrative.*;
-import com.reflexian.discordbot.commands.fun.Joke;
 import com.reflexian.discordbot.commands.fun.Say;
 import com.reflexian.discordbot.commands.leveling.Leaderboard;
 import com.reflexian.discordbot.commands.administrative.Leveling;
@@ -53,7 +52,7 @@ public class CommandListener extends ListenerAdapter {
     }
     private void commandExecutor(MessageReceivedEvent event, String message) throws SQLException, ExecutionException, InterruptedException {
 
-        if (event.getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) event.getMessage().delete().queue();
+        if (event.getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE)) event.getMessage().delete().queueAfter(5, TimeUnit.NANOSECONDS);
         String[] args = message.split("\\s+");
         Main.logger.info(event.getAuthor().getAsTag() + " -> " + message + " (" + event.getGuild().getName() + ")");
         switch (args[0].toLowerCase()) {
@@ -107,11 +106,6 @@ public class CommandListener extends ListenerAdapter {
                     getInvite = null;
                 }
                 break;
-            case "joke":
-                Joke joke = new Joke(args, event.getMember(), event.getAuthor());
-                joke.execute(event);
-                joke=null;
-                return;
             case "kick":
                 Kick kick = new Kick(args, event.getMember(), event.getAuthor());
                 kick.execute(event);
@@ -167,6 +161,12 @@ public class CommandListener extends ListenerAdapter {
                     addMembership.execute(event);
                     addMembership = null;
                 }
+                break;
+            case "lock":
+            case "unlock":
+                ChannelLock channelLock = new ChannelLock(args, event.getMember(), event.getAuthor());
+                channelLock.execute(event);
+                channelLock=null;
                 break;
             case "membership":
                 Membership membership = new Membership(args, event.getMember(), event.getAuthor());

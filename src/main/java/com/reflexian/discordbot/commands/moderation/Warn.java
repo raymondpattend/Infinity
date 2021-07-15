@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -77,8 +78,8 @@ public class Warn extends Command {
                 return;
             }
 
-            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+event.getAuthor().getId()+"#"+event.getGuild().getId()+"';", true);
-            if (!rs.next()) MySQL.createMember(event.getMember(), event.getGuild());
+            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+member.getId()+"#"+event.getGuild().getId()+"';", true);
+            if (!rs.next()) MySQL.createMember(member, event.getGuild());
 
             String rea = reason.toString().replaceAll("\\s+$", "");
 
@@ -99,14 +100,17 @@ public class Warn extends Command {
                 sendMessage(event.getGuild().getTextChannelById(server.getSettings().getLogging_channel()), warnlog.build(), null);
             }
 
-            Main.getPlugin().executeQuery("UPDATE user_data SET warnings = " + (rs.getLong("warnings")+1)+" and warnings_reasons = '" + warnings.toString()+"' WHERE user_key = '" + event.getAuthor().getId() + "\\#" + event.getGuild().getId() + "';", true);
+            Statement s = Main.getPlugin().getConnection().createStatement();
+            System.out.println(rs.getLong("warnings")+"");
+            s.execute("UPDATE user_data SET warnings=" + (rs.getLong("warnings")+1)+" WHERE user_key='" + member.getId() + "#" + event.getGuild().getId()+"';");
+            s.execute("UPDATE user_data SET warnings_reasons='" + warnings.toString()+"' WHERE user_key='" + member.getId() + "#" + event.getGuild().getId()+"';");
 
             EmbedBuilder warning = new EmbedBuilder();
             warning.setColor(new Color(60, 191, 90));
             warning.setTitle("Successfully Warned " + member.getUser().getAsTag());
             warning.addField("Reason", "```" + rea + "```", false);
             warning.addField("Punisher", event.getAuthor().getAsTag(), false);
-            warning.addField("Total Warnings", rs.getLong("warnings")+ "/3", false);
+            warning.addField("Total Warnings", (rs.getLong("warnings")+1)+ "/3", false);
             warning.setFooter("Executed on " + new Date(), event.getAuthor().getAvatarUrl());
 
             // @Infinity#9388 ban <user> <reason...>
@@ -125,7 +129,7 @@ public class Warn extends Command {
             sendMessage(event.getTextChannel(), warning.build(), 30);
 
 
-            if (rs.getLong("warnings") >= 3) {
+            if (rs.getLong("warnings")+1 >= 3) {
 
                 EmbedBuilder banned = new EmbedBuilder();
                 banned.setColor(new Color(167, 76, 76));

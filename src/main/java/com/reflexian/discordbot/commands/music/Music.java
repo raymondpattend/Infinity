@@ -43,11 +43,14 @@ public class Music extends Command {
     private static final String QUEUE_INFO = "Info about the Queue: (Size - %d)";
     private static final String ERROR = "Error while loading \"%s\"";
 
-    private final EmbedBuilder help = new EmbedBuilder().setTitle("Help - Music").setDescription("Sub Commands start with <@775250061504413727>").addField("Commands","Play <url> **-** Play a YouTube URL\nPlay <search> **-** Search for a YouTube Title to play\nInfo **-** Get information about the current song\nVolume **-** Set the volume of the bot\nPause **-** Pause the current track\nPlay **-** Play the current track\nSkip **-** Cast a vote to skip the current track\nForceSkip **-** Force a skip on the current track*\nQueue **-** View the song queue\nReset **-** Reset the music player*",false).addField("Description", "The music feature allows you to play content from YouTube through the bot.", false).addField("Permission", "Commands ending with * require ``DJ`` role or ``MANAGE_MESSAGES`` permission.", false).addField("Example","```@Infinity#9388 music play All Star - Smash Mouth```", false).setColor(new Color(50, 122, 182));
+    private final EmbedBuilder help = new EmbedBuilder().setTitle("Help - Music").setDescription("Sub Commands start with <@775250061504413727>").addField("Commands","Play <url> **-** Play a YouTube URL\nPlay <search> **-** Search for a YouTube Title to play\nInfo **-** Get information about the current song\nVolume **-** Set the volume of the bot\nPause **-** Pause the current track\nPlay **-** Play the current track\nSkip **-** Cast a vote to skip the current track\nForceSkip **-** Force a skip on the current track*\nQueue **-** View the song queue\nReset **-** Reset the music player*",false).addField("Description", "The music feature allows you to play content from YouTube through the bot.", false).addField("Permission", "Commands ending with * require ``DJ`` role or ``MANAGE_MESSAGES`` permission.", false).addField("Example","```@CoinMan#3243 music play All Star - Smash Mouth```", false).setColor(new Color(50, 122, 182));
 
     public Music(String[] command, @Nullable Member member, @Nullable User user) {
         super(command, member, user);
     }
+
+
+
 
     @Override
     public void execute(MessageReceivedEvent event) throws SQLException {
@@ -61,11 +64,11 @@ public class Music extends Command {
             case 3:
                 switch (args[2].toLowerCase()) {
                     case "volume":
-                        sendMessage(event.getTextChannel(), "Incorrect Usage.\n``@Infinity#9388 music volume (1-100)", 15);
+                        sendMessage(event.getTextChannel(), "Incorrect Usage.\n``@CoinMan#3243 music volume (1-100)", 15);
                         return;
                     case "queue":
                         if (!hasPlayer(guild) || getTrackManager(guild).getQueuedTracks().isEmpty()) {
-                            sendMessage(event.getTextChannel(), "The queue is empty! Load a song with ``@Infinity#9388 music play``!", 30);
+                            sendMessage(event.getTextChannel(), "The queue is empty! Load a song with ``@CoinMan#3243 music play``!", 30);
                         } else {
                             StringBuilder sb = new StringBuilder();
                             Set<AudioInfo> queue = getTrackManager(guild).getQueuedTracks();
@@ -133,7 +136,7 @@ public class Music extends Command {
                         if (isCurrentDj(event.getMember()) || isDj(event.getMember())||event.getMember().hasPermission(Permission.MESSAGE_MANAGE)) {
                             forceSkipTrack(guild, event.getTextChannel());
                         } else {
-                            sendMessage(event.getTextChannel(), "You don't have permission to do that!\nUse ``@Infinity#9388 music skip`` to cast a vote!", 30);
+                            sendMessage(event.getTextChannel(), "You don't have permission to do that!\nUse ``@CoinMan#3243 music skip`` to cast a vote!", 30);
                         }
                         break;
                     case "shuffle":

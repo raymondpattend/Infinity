@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MessageLoader extends ListenerAdapter {
 
-    public Map<Long, Message> messageMap = new HashMap<>();
+    public static Map<Long, Message> messageMap = new HashMap<>();
     public static java.util.List<TextChannel> channelList = new ArrayList<>();
     public int i = 0;
 

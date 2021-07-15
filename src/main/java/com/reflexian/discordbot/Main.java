@@ -30,7 +30,7 @@ import java.util.Date;
 public class Main {
 
     // TODO Change from true to false
-    public double version = 0.0204;
+    public double version = 0.0207;
     public static boolean isDev = false;
 
     private static JDA jda;

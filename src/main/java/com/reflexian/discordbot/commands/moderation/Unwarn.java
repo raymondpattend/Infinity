@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Date;
 
 public class Unwarn extends Command {
@@ -68,7 +69,9 @@ public class Unwarn extends Command {
             }
             EmbedBuilder warnings=new EmbedBuilder();
 
-            Main.getPlugin().executeQuery("UPDATE user_data SET warnings = " +0+" and warnings_reasons = 'none/none/none' WHERE user_key = '" + event.getAuthor().getId() + "\\#" + event.getGuild().getId() + "';", true);
+            Statement s = Main.getPlugin().getConnection().createStatement();
+            s.execute("UPDATE user_data SET warnings=" +0+" WHERE user_key='" + member.getId() + "#" + event.getGuild().getId()+"';");
+            s.execute("UPDATE user_data SET warnings_reasons='" + "none/none/none"+"' WHERE user_key='" + member.getId() + "#" + event.getGuild().getId()+"';");
 
             warnings.setTitle("Removed all warnings for " + member.getUser().getAsTag());
             warnings.setThumbnail(member.getUser().getAvatarUrl()).setDescription(member.getUser().getAsTag() + " now has no warnings!");

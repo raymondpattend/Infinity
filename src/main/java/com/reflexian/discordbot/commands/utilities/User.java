@@ -41,7 +41,7 @@ public class User extends Command {
 
             net.dv8tion.jda.api.entities.User user = member.getUser();
 
-            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+event.getAuthor().getId()+"#"+event.getGuild().getId()+"';", true);
+            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+member.getId()+"#"+event.getGuild().getId()+"';", true);
 
             long xp = 0,level=0,maxXp=0;
             if (!rs.next()) {

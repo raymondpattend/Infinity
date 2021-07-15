@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.sql.SQLException;
+import java.util.Date;
 
 public class Counting extends Command {
     public Counting(String[] command, @Nullable Member member, @Nullable User user) {
@@ -34,6 +35,7 @@ public class Counting extends Command {
             help.addField("Permission", "Requires ``MANAGE_SERVER`` to execute subcommands.", false);
             help.addField("Example", "```@Infinity#9388 counting setchannel #count-to-million```", false);
             help.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+            help.setTimestamp(new Date().toInstant());
             sendMessage(event.getTextChannel(), help.build(), 60);
             return;
         }

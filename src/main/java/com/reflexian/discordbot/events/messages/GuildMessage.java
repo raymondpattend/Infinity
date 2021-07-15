@@ -44,7 +44,6 @@ public class GuildMessage extends ListenerAdapter {
         String message = event.getMessage().getContentRaw();
         if (message.startsWith("<@775250061504413727> ") || message.startsWith("<@!775250061504413727> ") || message.startsWith("<@!784515176132378625> ") || message.startsWith("<@784515176132378625> "))return;
         if (message.length() < 3) return;
-        System.out.println("A");
         try {
             ResultSet playerdata = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '" + event.getAuthor().getId()+"#"+event.getGuild().getId()+"';", true);
             if (playerdata.next()) {
@@ -52,13 +51,10 @@ public class GuildMessage extends ListenerAdapter {
                 long xp = playerdata.getLong("leveling_xp");
                 long level = playerdata.getLong("leveling_level");
                 long xpneeded = playerdata.getLong("leveling_xpneeded");
-                System.out.println("B " + xp + " " + level + " " + xpneeded);
 
                 xp+=new Random().nextInt(30-10+1)+10;
                 if (xp > xpneeded) {
-                    System.out.println("C " + xp + " " + level + " " + xpneeded);
                     while (xp>=xpneeded) {
-                        System.out.println("D " + xp + " " + level + " " + xpneeded);
                         xp-=xpneeded;
                         level+=1;
                         xpneeded=level*100;
@@ -90,10 +86,12 @@ public class GuildMessage extends ListenerAdapter {
                         }
                     }
                     levelcooldownMap.put(event.getMember(), System.currentTimeMillis());
-                    Main.getPlugin().executeQuery("UPDATE user_data SET leveling_xp = " + xp + ", leveling_xpneeded = "+xpneeded+", leveling_level = "+level+" WHERE user_key = '" + event.getAuthor().getId() + "\\#" + event.getGuild().getId() + "';", true);
+                    Statement s = Main.getPlugin().getConnection().createStatement();
+                    s.execute("UPDATE user_data SET leveling_xp = " + xp + ", leveling_xpneeded = "+xpneeded+", leveling_level = "+level+" WHERE user_key = '" + event.getAuthor().getId() + "\\#" + event.getGuild().getId() + "';");
                     return;
                 }
-                Main.getPlugin().executeQuery("UPDATE user_data SET leveling_xp = " + xp+" WHERE user_key = '" + event.getAuthor().getId() + "\\#" + event.getGuild().getId() + "';", true);
+                Statement s = Main.getPlugin().getConnection().createStatement();
+                s.execute("UPDATE user_data SET leveling_xp = " + xp + " WHERE user_key = '" + event.getAuthor().getId() + "\\#" + event.getGuild().getId() + "';");
             } else {
                 MySQL.createMember(event.getMember(), event.getGuild());
             }

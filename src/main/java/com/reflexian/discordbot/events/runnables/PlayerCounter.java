@@ -1,10 +1,15 @@
 package com.reflexian.discordbot.events.runnables;
 
 import com.reflexian.discordbot.Main;
+import com.reflexian.discordbot.events.log.MessageLoader;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class PlayerCounter implements Runnable {
 
@@ -42,6 +47,19 @@ public class PlayerCounter implements Runnable {
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
+
+                OffsetDateTime o = OffsetDateTime.now().plusHours(1);
+                MessageLoader.messageMap.values().forEach(e -> {
+
+                    long diff = ChronoUnit.HOURS.between(e.getTimeCreated().toInstant(), Instant.now());
+                    System.out.println("Difference: " + diff);
+
+                    if (diff >= 1) {
+                        MessageLoader.messageMap.remove(e.getIdLong());
+                        Main.logger.info("Removed message with id " + e.getId());
+                    }
+                });
+
                 num=0;
             }
 

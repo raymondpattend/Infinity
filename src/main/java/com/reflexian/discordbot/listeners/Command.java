@@ -54,6 +54,14 @@ public abstract class Command extends ListenerAdapter {
 
     public void sendMessage(TextChannel textChannel, MessageEmbed embed, @Nullable Integer secondDelete) {
         if (textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_WRITE)&&textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.VIEW_CHANNEL)) {
+            if (!textChannel.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_EMBED_LINKS)) {
+                textChannel.sendMessage("**" + embed.getTitle()+"**\n\n"+embed.getDescription()+"\n\n``I do not have permission to send Embed Messages, so this will have to do :(``").queue(message -> {
+                    if (secondDelete==null) return;
+                    if (message == null) return;
+                    message.delete().queueAfter(secondDelete, TimeUnit.SECONDS);
+                });
+                return;
+            }
             textChannel.sendMessage(embed).queue(message -> {
                 if (secondDelete==null) return;
                 if (message == null) return;

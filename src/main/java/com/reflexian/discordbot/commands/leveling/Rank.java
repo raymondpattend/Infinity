@@ -63,10 +63,10 @@ public class Rank extends Command {
             rank.setTitle("Level for " + user.getAsTag());
 
 
-            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+event.getAuthor().getId()+"#"+event.getGuild().getId()+"';", true);
+            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+member.getUser().getId()+"#"+event.getGuild().getId()+"';", true);
 
             if (!rs.next()) {
-                MySQL.createMember(event.getMember(), event.getGuild());
+                MySQL.createMember(member, event.getGuild());
 
                 rank.setDescription("**Level** 0\n**Level Progress** 0/100\n**XP for Next Level** 100");
             } else {

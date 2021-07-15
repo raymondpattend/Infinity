@@ -56,8 +56,8 @@ public class Warnings extends Command {
                 return;
             }
 
-            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+event.getAuthor().getId()+"#"+event.getGuild().getId()+"';", true);
-            if (!rs.next()) MySQL.createMember(event.getMember(), event.getGuild());
+            ResultSet rs = Main.getPlugin().executeQuery("SELECT * FROM user_data WHERE user_key = '"+member.getId()+"#"+event.getGuild().getId()+"';", true);
+            if (!rs.next()) MySQL.createMember(member, event.getGuild());
 
             if (rs.getLong("warnings")==0) {
                 EmbedBuilder none=new EmbedBuilder();
