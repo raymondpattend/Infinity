@@ -25,21 +25,29 @@ public class Unban extends Command {
     public void execute(MessageReceivedEvent event) {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
         if (!Objects.requireNonNull(event.getMember()).hasPermission(Permission.BAN_MEMBERS)) {
-            event.getChannel().sendMessage(new EmbedBuilder().setTitle("No permission.").setDescription("You need ``BAN_MEMBERS`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+            sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No permission.").setDescription("You need ``BAN_MEMBERS`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
             return;
         }
         if (args.length <3) {
-            event.getChannel().sendMessage(new EmbedBuilder().setTitle("Not enough arguments.").setDescription("Correct usage:\n``@Infinity#9833 ban <mention / id> <reason>``").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+            EmbedBuilder help = new EmbedBuilder();
+            help.setColor(new Color(189,55,55));
+            help.setTitle("Help - Unban");
+            help.setDescription("Sub Commands start with <@775250061504413727>");
+            help.addField("Commands", "Unban **-** Unban a previously banned member", false);
+            help.addField("Description", "This command allows you to unban any previously banned member", false);
+            help.addField("Permission", "Requires ``BAN_MEMBERS`` to execute subcommands.", false);
+            help.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+            sendMessage(event.getTextChannel(), help.build(), 40);
             return;
         }
         try {
             event.getGuild().unban(args[2]).queue(unused -> {
-                event.getChannel().sendMessage(new EmbedBuilder().setTitle("Successfully unbanned.").setDescription("You have successfully unbanned " + args[2] + "!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(12, 137, 33)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Successfully unbanned.").setDescription("You have successfully unbanned " + args[2] + "!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(12, 137, 33)).build(), null);
             }, (failure) -> {
-                event.getChannel().sendMessage(new EmbedBuilder().setTitle("Not a valid user ID.").setDescription("You must include a valid user id or the specified user ID is not banned.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Not a valid user ID.").setDescription("You must include a valid user id or the specified user ID is not banned.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
             });
         }catch (NullPointerException | IllegalArgumentException e) {
-            event.getChannel().sendMessage(new EmbedBuilder().setTitle("Not a valid user ID.").setDescription("You must include a valid user id or the specified user ID is not banned.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
+            sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Not a valid user ID.").setDescription("You must include a valid user id or the specified user ID is not banned.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
         }
 
     }

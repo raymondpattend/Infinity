@@ -1,9 +1,11 @@
-package com.reflexian.discordbot.commands.administration;
+package com.reflexian.discordbot.commands.botadministrative;
 
 import com.reflexian.discordbot.Main;
 import com.reflexian.discordbot.listeners.Command;
+import com.reflexian.discordbot.utilities.ChannelUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.Nullable;
@@ -37,8 +39,12 @@ public class Leave extends Command {
             em.setColor(new Color(43, 167, 76));
             em.setTitle("Successfully left " + Main.getJda().getGuildById(id).getName()+"!");
             em.setDescription("Infinity has left that discord.");
+            event.getChannel().sendMessage(em.build()).queue(message -> {}, (failure) -> {
+                TextChannel tx = ChannelUtils.getOpenChannel(event.getGuild());
+                if (tx==null)return;
+                tx.sendMessage(em.build()).queue();
+            });
             Main.getJda().getGuildById(id).leave().queue();
-            event.getChannel().sendMessage(em.build()).queue(message -> message.delete().queueAfter(10, TimeUnit.SECONDS));
         }catch (NumberFormatException | NullPointerException e) {
             em.setColor(new Color(179, 64, 64));
             em.setTitle("No such discord with ID.");

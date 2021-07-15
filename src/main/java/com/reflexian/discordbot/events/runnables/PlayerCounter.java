@@ -1,11 +1,15 @@
 package com.reflexian.discordbot.events.runnables;
 
 import com.reflexian.discordbot.Main;
-import com.reflexian.discordbot.mysql.MySQL;
+import com.reflexian.discordbot.events.log.MessageLoader;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class PlayerCounter implements Runnable {
 
@@ -22,7 +26,6 @@ public class PlayerCounter implements Runnable {
         return !this.doStop;
     }
 
-    // This is so we can send the actionbar to all online players
 
     @Override
     public void run() {
@@ -32,19 +35,32 @@ public class PlayerCounter implements Runnable {
                 for (Guild guild : Main.getJda().getGuilds()) {
                     i+=guild.getMemberCount();
                 }
-                Main.getJda().getPresence().setActivity(Activity.playing("with " + i + " other people!"));
+                Main.getJda().getPresence().setActivity(Activity.playing("with " + i + " users | @Infinity#9833 help"));
                 num=1;
             } else if (num==1) {
-                Main.getJda().getPresence().setActivity(Activity.playing("with " + (Main.getJda().getGuilds().size()) + " other guilds."));
+                Main.getJda().getPresence().setActivity(Activity.playing("with " + (Main.getJda().getGuilds().size()) + " guilds | @Infinity#9833 help"));
                 num=2;
             } else if (num==2) {
-                Main.getJda().getPresence().setActivity(Activity.playing("on reflexian.com"));
-                num=0;
+                Main.getJda().getPresence().setActivity(Activity.playing("@Infinity#9833 help"));
                 try {
-                    new MySQL().registerTables();
+                    Main.getPlugin().executeQuery("SELECT * FROM guild_data", true);
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
+
+                OffsetDateTime o = OffsetDateTime.now().plusHours(1);
+                MessageLoader.messageMap.values().forEach(e -> {
+
+                    long diff = ChronoUnit.HOURS.between(e.getTimeCreated().toInstant(), Instant.now());
+                    System.out.println("Difference: " + diff);
+
+                    if (diff >= 1) {
+                        MessageLoader.messageMap.remove(e.getIdLong());
+                        Main.logger.info("Removed message with id " + e.getId());
+                    }
+                });
+
+                num=0;
             }
 
             try {

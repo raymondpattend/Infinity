@@ -39,15 +39,13 @@ public class Uptime extends Command {
 
     @Override
     public void execute(MessageReceivedEvent event) {
-        event.getChannel().sendMessage(
-                new EmbedBuilder()
-                        .setColor(new Color(73, 208, 109))
-                        .setTitle("Discord Bot Uptime")
-                        .addField("Last restart", getTime(Main.lastRestart, "dd/MM/yyyy : HH:mm:ss (z)"), false)
-                        .addField("Online for", getTimeDiff(new Date(), Main.lastRestart), false)
-                        .setFooter(("Requested by " + event.getAuthor().getAsTag()) , event.getAuthor().getAvatarUrl())
-                        .build()
-        ).queue(message1 -> message1.delete().queueAfter(20, TimeUnit.SECONDS));
+        sendMessage(event.getTextChannel(),                 new EmbedBuilder()
+                .setColor(new Color(73, 208, 109))
+                .setTitle("Discord Bot Uptime")
+                .addField("Last restart", getTime(Main.lastRestart, "MM/dd/yyyy : HH:mm:ss (z)"), false)
+                .addField("Online for", getTimeDiff(new Date(), Main.lastRestart), false)
+                .setFooter(("Requested by " + event.getAuthor().getAsTag()) , event.getAuthor().getAvatarUrl())
+                .build(), 30);
     }
 
     @Override

@@ -5,7 +5,10 @@ import com.reflexian.discordbot.listeners.Command;
 import com.reflexian.discordbot.utilities.objects.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,9 +16,8 @@ import java.awt.*;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-public class Ban extends Command {
-
-    public Ban(String[] command, @Nullable Member member, @Nullable User user) {
+public class Kick extends Command {
+    public Kick(String[] command, @Nullable Member member, @Nullable User user) {
         super(command, member, user);
     }
 
@@ -30,12 +32,13 @@ public class Ban extends Command {
 
             EmbedBuilder help = new EmbedBuilder();
             help.setColor(new Color(189,55,55));
-            help.setTitle("Help - Ban");
+            help.setTitle("Help - Kick");
             help.setDescription("Sub Commands start with <@775250061504413727>");
-            help.addField("Commands", "Ban **-** Permanently ban a member", false);
-            help.addField("Description", "This command allows you to permanently ban a user, for any reason.", false);
-            help.addField("Permission", "Requires ``BAN_MEMBERS`` to execute subcommands.", false);
-            help.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+            help.addField("Commands", "Kick **-** Kick / Remove a member from this server", false);
+            help.addField("Description", "This command allows you to kick a user from this guild. They will still be able to join using a valid invite link.", false);
+            help.addField("Permission", "Requires ``KICK_MEMBERS`` to execute subcommands.", false);
+            help.addField("Example", "```@Infinity#9833 kick @Raymond#0001 Advertising External Links", false);
+            help.setFooter("Executed by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setTimestamp(new Date().toInstant());
             sendMessage(event.getTextChannel(), help.build(), 40);
             return;
         }
@@ -50,11 +53,11 @@ public class Ban extends Command {
                 member = event.getGuild().getMemberById(args[2]);
             }
 
-            if (!event.getMember().hasPermission(Permission.BAN_MEMBERS)) {
-                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No permission.").setDescription("You need ``BAN_MEMBERS`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
+            if (!event.getMember().hasPermission(Permission.KICK_MEMBERS)) {
+                sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("No permission.").setDescription("You need ``KICK_MEMBERS`` permission to use this command!").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
                 return;
             }
-            if (member.hasPermission(Permission.BAN_MEMBERS)) {
+            if (member.hasPermission(Permission.KICK_MEMBERS)) {
                 sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Member with higher permissions.").setDescription("The user you want to punish has administrator permissions.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
                 return;
             }
@@ -75,28 +78,27 @@ public class Ban extends Command {
                 return;
             }
 
-            EmbedBuilder banned = new EmbedBuilder();
-            banned.setColor(new Color(167, 76, 76));
-            banned.setTitle("Successfully banned " + member.getUser().getAsTag());
-            banned.setDescription("Banned " + member.getUser().getAsTag() + " permanently. This action is non reversible!");
-            banned.addField("Duration", "Permanent", false);
-            banned.addField("Punisher", event.getAuthor().getAsTag(), false);
-            banned.addField("Reason", "```" + str + "```", false);
-            banned.setFooter("Executed on " + new Date(), event.getAuthor().getAvatarUrl());
-            banned.setTimestamp(new Date().toInstant());
+            EmbedBuilder kicked = new EmbedBuilder();
+            kicked.setColor(new Color(167, 76, 76));
+            kicked.setTitle("Successfully kicked " + member.getUser().getAsTag());
+            kicked.setDescription("Kicked " + member.getUser().getAsTag() + ". They can rejoin using a valid invite.");
+            kicked.addField("Punisher", event.getAuthor().getAsTag(), false);
+            kicked.addField("Reason", "```" + str + "```", false);
+            kicked.setFooter("Executed on " + new Date(), event.getAuthor().getAvatarUrl());
+            kicked.setTimestamp(new Date().toInstant());
 
-            EmbedBuilder banlog = new EmbedBuilder().setTitle("\ud83d\udea8 Banned " + member.getUser().getAsTag()).setColor(new Color(167, 76, 76)).setDescription(member.getUser().getAsTag() + " has been banned by " + event.getAuthor().getAsMention()+".").addField("Reason", "```" + str + "```", false).addField("Duration", "Permanent", false).setTimestamp(new Date().toInstant()).setFooter("Executed by " + event.getAuthor().getAsTag());
+            EmbedBuilder kicklog = new EmbedBuilder().setTitle("\ud83e\udd7e Kicked " + member.getUser().getAsTag()).setColor(new Color(167, 76, 76)).setDescription(member.getUser().getAsTag() + " has been kicked by " + event.getAuthor().getAsMention()+".").addField("Reason", "```" + str + "```", false).setTimestamp(new Date().toInstant()).setFooter("Executed by " + event.getAuthor().getAsTag());
             if (server.getSettings().isLogging_enabled() && event.getGuild().getTextChannelById(server.getSettings().getLogging_channel())!=null) {
-                sendMessage(event.getGuild().getTextChannelById(server.getSettings().getLogging_channel()), banlog.build(), null);
+                sendMessage(event.getGuild().getTextChannelById(server.getSettings().getLogging_channel()), kicklog.build(), null);
             }
 
-            Main.logger.warn(event.getAuthor().getAsTag() + " has banned " + member.getUser().getAsTag() + " permanently from " + event.getGuild().getName() + " for \"" + str+"\"");
-            sendMessage(event.getTextChannel(), banned.build(), 30);
+            Main.logger.warn(event.getAuthor().getAsTag() + " has kicked " + member.getUser().getAsTag() + " from " + event.getGuild().getName() + " for \"" + str+"\"");
+            sendMessage(event.getTextChannel(), kicked.build(), 30);
 
             member.getUser().openPrivateChannel().queue((channel2) -> {
-                channel2.sendMessage(banned.setTitle("You were banned from " + event.getGuild().getName() + "!").setDescription("You are banned permanently. This action is non reversible!").build()).queue();
+                channel2.sendMessage(kicked.setTitle("You were kicked from " + event.getGuild().getName() + "!").setDescription("You are no longer in " + event.getGuild().getName() + ". You can rejoin using a valid invite link.").build()).queue();
             });
-            event.getGuild().ban(member, 0, str.toString()).queueAfter(5, TimeUnit.SECONDS);
+            event.getGuild().kick(member, str.toString()).queue();
 
         }catch (NullPointerException | NumberFormatException e) {
             sendMessage(event.getTextChannel(), new EmbedBuilder().setTitle("Not a valid member.").setDescription("You must include a valid member or mention.").setFooter("Issued by " + event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl()).setColor(new Color(189, 55, 55)).build(), 10);
